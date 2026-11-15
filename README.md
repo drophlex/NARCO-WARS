@@ -6,7 +6,7 @@ Juego de estrategia y comercio estilo synthwave, ambientado en un México del 20
 
 ## ▶ Jugar
 
-**👉 https://drophlex.github.io/narco-wars/**
+**👉 https://drophlex.github.io/NARCO-WARS/**
 
 En Android: abre el enlace en Chrome → menú ⋮ → **Agregar a pantalla de inicio**. Funciona sin internet después de la primera vez.
 En iPhone: abre en Safari → Compartir → **Agregar a inicio**.
