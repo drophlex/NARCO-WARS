@@ -1,0 +1,17 @@
+{
+  "name": "Narco Wars: Cyber México",
+  "short_name": "Narco Wars",
+  "description": "Compra barato, vende caro y págale a Don Chuy en 60 días.",
+  "lang": "es-MX",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0221",
+  "theme_color": "#0d0221",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
