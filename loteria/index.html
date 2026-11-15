@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Lotería Mexicana</title>
+<meta name="theme-color" content="#7a0c13">
+<meta name="description" content="Lotería Mexicana: juego de cartas de humor negro yucateco. Esquiva a La Muerte, llena tu cartilla y juega con hasta 4 amigos.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rye&display=swap" rel="stylesheet">
+<style>:root{
+  --paper:#f2e4c4; --paper2:#e8d5a8; --ink:#1d1712; --red:#b5121b; --red2:#7a0c13; --gold:#ffd23f; --green:#2b9348; --pink:#e5387b; --blue:#2f6db5;
+  --felt:#0f3b2e; --felt2:#0a2a20;
+  --safe-t: env(safe-area-inset-top,0px); --safe-b: env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#120a06;color:var(--ink);font-family:"Trebuchet MS",system-ui,-apple-system,sans-serif;overflow:hidden}
+button{font:inherit;cursor:pointer;border:none}
+.hidden{display:none!important}
+.title-font{font-family:"Rye",Georgia,serif}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;overflow:auto;padding:calc(var(--safe-t) + 12px) 12px calc(var(--safe-b) + 12px)}
+
+/* --- papel picado --- */
+.picado{position:absolute;left:0;right:0;top:0;height:54px;display:flex;pointer-events:none;z-index:0}
+.picado span{flex:1;height:100%;clip-path:polygon(0 0,100% 0,100% 70%,85% 100%,70% 70%,50% 100%,30% 70%,15% 100%,0 70%);margin:0 2px;opacity:.9;
+  -webkit-mask: radial-gradient(circle at 50% 35%, transparent 5px, #000 6px) ; mask: radial-gradient(circle at 50% 35%, transparent 5px, #000 6px)}
+
+/* --- MENÚ --- */
+#menu{background:radial-gradient(ellipse at top,#5a1a10 0%,#1b0b06 60%,#0d0503 100%)}
+.logo{position:relative;z-index:1;margin:46px 0 8px;text-align:center;color:var(--gold);line-height:.95}
+.logo .l1{font-size:clamp(46px,13vw,84px);letter-spacing:2px;text-shadow:3px 3px 0 var(--red),6px 6px 0 #000}
+.logo .l2{font-size:clamp(22px,6.5vw,40px);color:var(--paper);letter-spacing:6px;text-shadow:2px 2px 0 #000}
+.tag{color:#f6c9a8;text-align:center;max-width:420px;font-size:14px;margin:4px 0 14px;position:relative;z-index:1}
+.fan{position:relative;height:150px;width:300px;margin:4px 0 10px;z-index:1}
+.fan img{position:absolute;width:92px;left:104px;top:8px;border-radius:7px;box-shadow:0 6px 14px rgba(0,0,0,.6);transform-origin:50% 120%}
+.panel{position:relative;z-index:1;background:var(--paper);border:3px solid var(--ink);border-radius:14px;padding:16px;width:min(420px,100%);box-shadow:0 10px 0 var(--red2),0 18px 30px rgba(0,0,0,.6)}
+.panel h3{margin:0 0 10px;font-family:"Rye",Georgia,serif;font-weight:400;font-size:20px;text-align:center}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;font-weight:700;font-size:14px}
+.field input{font:inherit;font-size:18px;padding:10px 12px;border:3px solid var(--ink);border-radius:10px;background:#fffaf0}
+.btn{display:block;width:100%;padding:13px 14px;margin:8px 0;border:3px solid var(--ink);border-radius:12px;font-weight:800;font-size:17px;background:var(--gold);color:var(--ink);box-shadow:0 5px 0 var(--ink);transition:transform .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--ink)}
+.btn.red{background:var(--red);color:#fff}
+.btn.green{background:var(--green);color:#fff}
+.btn.pink{background:var(--pink);color:#fff}
+.btn.ghost{background:transparent;box-shadow:none;border-style:dashed}
+.btn:disabled{opacity:.45;filter:grayscale(.6)}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.seg{display:flex;gap:6px;margin:6px 0 4px}.seg button{flex:1;padding:10px 0;border:3px solid var(--ink);border-radius:10px;background:#fffaf0;font-weight:800;font-size:16px}
+.seg button.on{background:var(--ink);color:var(--gold)}
+.small{font-size:12px;color:#5a4a3a;text-align:center;margin-top:6px}
+.foot{color:#a88;font-size:12px;margin-top:14px;text-align:center;position:relative;z-index:1}
+.foot a{color:#f6c9a8}
+
+/* --- SALA --- */
+#lobby{background:radial-gradient(ellipse at top,#163a2c,#081a13)}
+.code{font-family:"Rye",Georgia,serif;font-size:46px;letter-spacing:8px;text-align:center;color:var(--red);margin:4px 0;user-select:all}
+.seats{display:flex;flex-direction:column;gap:8px;margin:10px 0}
+.seat{display:flex;align-items:center;gap:10px;background:#fffaf0;border:3px solid var(--ink);border-radius:12px;padding:8px 10px;font-weight:800}
+.seat .av{font-size:26px;width:40px;height:40px;display:grid;place-items:center;border-radius:50%;background:var(--paper2);border:2px solid var(--ink)}
+.seat .nm{flex:1}
+.seat .st{font-size:13px;padding:4px 8px;border-radius:8px;border:2px solid var(--ink);background:#ddd}
+.seat .st.ok{background:var(--green);color:#fff}
+.seat.empty{opacity:.5;border-style:dashed;font-weight:600}
+.seat .x{background:none;font-size:20px;padding:0 4px}
+.count{font-size:22px;text-align:center;font-weight:900;color:var(--red)}
+
+/* --- JUEGO --- */
+#game{padding:0;background:radial-gradient(ellipse at 50% 35%,#1a5a44 0%,var(--felt) 45%,var(--felt2) 100%);overflow:hidden}
+#game .wrap{width:min(900px,100%);height:100%;display:flex;flex-direction:column;padding:calc(var(--safe-t) + 6px) 8px calc(var(--safe-b) + 6px)}
+.topbar{display:flex;align-items:center;gap:6px;color:var(--paper)}
+.topbar .ic{background:rgba(0,0,0,.35);color:var(--paper);border:2px solid rgba(255,255,255,.25);border-radius:10px;width:38px;height:38px;font-size:18px}
+.turn{flex:1;text-align:center;font-weight:900;font-size:15px;text-shadow:1px 1px 0 #000;line-height:1.15}
+.turn b{color:var(--gold)}
+.opps{display:flex;gap:6px;justify-content:center;margin:6px 0 2px;flex-wrap:wrap}
+.opp{position:relative;display:flex;align-items:center;gap:6px;background:var(--paper);border:3px solid var(--ink);border-radius:12px;padding:4px 8px 4px 4px;min-width:0;max-width:48%;transition:transform .2s}
+.opp.cur{background:var(--gold);transform:translateY(-2px);box-shadow:0 0 0 3px #fff,0 0 18px var(--gold)}
+.opp.dead{filter:grayscale(1);opacity:.55}
+.opp .av{font-size:22px;width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:#fff;border:2px solid var(--ink);flex:none}
+.opp .info{min-width:0}
+.opp .nm{font-weight:900;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px}
+.opp .meta{font-size:12px;font-weight:700;display:flex;gap:6px;white-space:nowrap}
+.opp .pw{position:absolute;right:-6px;top:-8px;font-size:16px;animation:pulse 1s infinite}
+.opp .dc{position:absolute;left:-4px;top:-8px;font-size:12px}
+@keyframes pulse{50%{transform:scale(1.3)}}
+
+.table{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;position:relative}
+.piles{display:flex;gap:18px;align-items:flex-end}
+.pile{position:relative;text-align:center;color:var(--paper);font-weight:800;font-size:12px}
+.pile img{width:clamp(78px,20vw,112px);display:block;border-radius:8px;box-shadow:0 8px 16px rgba(0,0,0,.55)}
+.pile .stack{position:relative}
+.pile .stack::before,.pile .stack::after{content:"";position:absolute;inset:0;border-radius:8px;background:#5a0a10;border:2px solid #ffd23f55;transform:translate(3px,3px);z-index:-1}
+.pile .stack::after{transform:translate(6px,6px);z-index:-2}
+.pile .n{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--gold);border-radius:20px;padding:2px 9px;font-size:13px}
+.pile.can img{animation:glow 1.2s infinite}
+@keyframes glow{50%{box-shadow:0 0 0 4px var(--gold),0 0 26px var(--gold)}}
+.danger{display:flex;align-items:center;gap:6px;color:var(--paper);font-size:12px;font-weight:800;background:rgba(0,0,0,.35);border-radius:20px;padding:3px 10px}
+.danger .bar{width:90px;height:8px;border-radius:5px;background:#333;overflow:hidden}
+.danger .bar i{display:block;height:100%;background:linear-gradient(90deg,#ffd23f,#e63946)}
+.griton{display:flex;gap:8px;align-items:center;background:var(--paper);border:3px solid var(--ink);border-radius:14px;padding:6px 10px 6px 6px;max-width:min(560px,96%);box-shadow:0 5px 0 rgba(0,0,0,.4);min-height:58px}
+.griton img{width:38px;border-radius:4px;flex:none}
+.griton .t{font-size:13px;line-height:1.25}
+.griton .t b{font-family:"Rye",Georgia,serif;font-weight:400;font-size:15px;display:block}
+.griton.pop{animation:pop .35s}
+@keyframes pop{0%{transform:scale(.85)}60%{transform:scale(1.04)}}
+.known{display:flex;gap:4px;align-items:center;color:var(--paper);font-size:12px;font-weight:800}
+.known img{width:30px;border-radius:3px}
+.log{width:min(560px,96%);max-height:54px;overflow:hidden;color:#d8efe3;font-size:12px;line-height:1.35;text-align:center;cursor:pointer}
+.log.open{position:absolute;bottom:0;max-height:70%;overflow:auto;background:rgba(0,0,0,.85);border-radius:12px;padding:10px;z-index:5;text-align:left}
+.log div.death{color:#ff8f8f}.log div.loteria,.log div.power{color:var(--gold)}.log div.win{color:#9ef01a}
+
+.me{display:flex;gap:8px;align-items:stretch;margin-top:4px}
+.tabla{background:var(--paper);border:3px solid var(--ink);border-radius:10px;padding:4px;display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:clamp(92px,24vw,128px);flex:none;position:relative;cursor:pointer}
+.tabla .c{position:relative}
+.tabla img{width:100%;display:block;border-radius:2px}
+.tabla .bean{position:absolute;left:50%;top:50%;width:62%;aspect-ratio:1.3;transform:translate(-50%,-50%) rotate(-20deg);border-radius:50%;background:radial-gradient(circle at 35% 35%,#a0522d,#4a2511);box-shadow:1px 1px 2px #000}
+.tabla .lbl{grid-column:1/-1;text-align:center;font-size:10px;font-weight:900;letter-spacing:1px}
+.tabla.full{animation:glow 1s infinite}
+.actions{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.sel{background:rgba(0,0,0,.4);color:var(--paper);border-radius:10px;padding:6px 8px;font-size:12px;line-height:1.3;min-height:42px}
+.sel b{color:var(--gold)}
+.actions .btn{margin:0;padding:10px 8px;font-size:15px}
+.hand{display:flex;gap:6px;overflow-x:auto;padding:14px 4px 6px;margin:0 -8px;scroll-snap-type:x proximity;min-height:150px}
+.hand .card{flex:none;width:clamp(78px,21vw,100px);transition:transform .15s;scroll-snap-align:start;position:relative}
+.hand .card img{width:100%;display:block;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.5)}
+.hand .card.on{transform:translateY(-12px)}
+.hand .card.on img{box-shadow:0 0 0 3px var(--gold),0 10px 18px rgba(0,0,0,.6)}
+.hand .card.new img{animation:newc 1s}
+@keyframes newc{0%{transform:translateY(-40px) rotate(-8deg);opacity:0}}
+.hand .empty{color:var(--paper);opacity:.7;margin:auto;font-weight:700}
+
+/* nope bar */
+.nope{position:absolute;left:50%;top:4px;transform:translateX(-50%);width:min(560px,96%);background:var(--ink);color:var(--paper);border:3px solid var(--gold);border-radius:14px;padding:8px 10px;z-index:6;box-shadow:0 8px 20px rgba(0,0,0,.6)}
+.nope .msg{font-size:14px;font-weight:700;text-align:center}
+.nope .tb{height:6px;background:#444;border-radius:4px;margin:6px 0;overflow:hidden}.nope .tb i{display:block;height:100%;background:var(--gold)}
+.nope .btn{margin:4px 0 0;font-size:18px}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(10,4,2,.78);display:flex;align-items:center;justify-content:center;z-index:20;padding:14px}
+.modal .box{background:var(--paper);border:3px solid var(--ink);border-radius:16px;padding:16px;width:min(520px,100%);max-height:92vh;overflow:auto;box-shadow:0 10px 0 var(--red2);animation:pop .3s}
+.modal h2{margin:0 0 6px;font-family:"Rye",Georgia,serif;font-weight:400;text-align:center;font-size:24px}
+.modal p{margin:6px 0;text-align:center}
+.cards{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0}
+.cards .card{width:88px;position:relative;cursor:pointer;transition:transform .15s}
+.cards .card img{width:100%;border-radius:7px;box-shadow:0 3px 8px rgba(0,0,0,.4)}
+.cards .card.on{transform:translateY(-8px)}.cards .card.on img{box-shadow:0 0 0 3px var(--red)}
+.cards .card .pos{position:absolute;top:-8px;left:-6px;background:var(--ink);color:var(--gold);font-weight:900;font-size:12px;border-radius:10px;padding:2px 7px}
+.targets{display:flex;flex-direction:column;gap:6px}
+.big{font-size:64px;text-align:center;line-height:1}
+.dead-ov h2{color:var(--red);font-size:30px}
+input[type=range]{width:100%;accent-color:var(--red)}
+.help{max-height:80vh}
+.help .r{display:flex;gap:10px;align-items:center;margin:8px 0;font-size:14px}
+.help .r img{width:62px;border-radius:5px;flex:none}
+.help ol{padding-left:20px;font-size:14px;line-height:1.45}
+
+#toast{pointer-events:none;position:fixed;left:50%;bottom:calc(var(--safe-b) + 170px);transform:translateX(-50%);background:var(--ink);color:var(--gold);padding:10px 16px;border-radius:12px;font-weight:800;z-index:30;max-width:90%;text-align:center;border:2px solid var(--gold);transition:opacity .3s}
+.flash{position:fixed;inset:0;pointer-events:none;z-index:15;display:grid;place-items:center}
+.flash .w{font-family:"Rye",Georgia,serif;font-size:clamp(40px,12vw,90px);color:var(--gold);text-shadow:4px 4px 0 var(--red),8px 8px 0 #000;animation:boom 1.6s forwards;text-align:center}
+@keyframes boom{0%{transform:scale(.2) rotate(-10deg);opacity:0}20%{transform:scale(1.15);opacity:1}80%{opacity:1}100%{transform:scale(1);opacity:0}}
+.shake{animation:shake .5s}
+@keyframes shake{20%{transform:translate(-8px,4px)}40%{transform:translate(8px,-4px)}60%{transform:translate(-6px,-2px)}80%{transform:translate(4px,2px)}}
+@media (min-height:760px){ .hand{min-height:170px} .griton .t{font-size:14px} }
+</style>
+</head>
+<body>
+<!-- MENÚ -->
+<section id="menu" class="screen">
+  <div class="picado" id="picado"></div>
+  <div class="logo"><div class="l1 title-font">LOTERÍA</div><div class="l2 title-font">MEXICANA</div></div>
+  <div class="tag">Esquiva a <b>La Muerte</b>, llénale la cartilla a tu suerte y no te fíes de tu compadre. <br>Humor negro hecho en Mérida, bomba.</div>
+  <div class="fan" id="fan"></div>
+  <div class="panel">
+    <div class="field">¿Cómo te dicen?<input id="name" maxlength="16" placeholder="Ej. El Pelana" autocomplete="off"></div>
+    <div id="m-main">
+      <button class="btn" id="b-solo">🤖 Jugar contra la máquina</button>
+      <button class="btn red" id="b-host">🎟️ Crear sala privada</button>
+      <button class="btn green" id="b-join">🔑 Entrar con código</button>
+      <button class="btn ghost" id="b-help">📜 Cómo se juega</button>
+    </div>
+    <div id="m-solo" class="hidden">
+      <h3>¿Contra cuántas máquinas?</h3>
+      <div class="seg" id="seg-bots"><button data-n="1">1</button><button data-n="2" class="on">2</button><button data-n="3">3</button></div>
+      <button class="btn" id="b-solo-go">¡Corre y se va!</button>
+      <button class="btn ghost" data-back>← Regresar</button>
+    </div>
+    <div id="m-join" class="hidden">
+      <h3>Código de la sala</h3>
+      <div class="field"><input id="code" maxlength="5" placeholder="ABCDE" style="text-transform:uppercase;letter-spacing:6px;text-align:center;font-size:26px;font-weight:900"></div>
+      <button class="btn green" id="b-join-go">Entrar a la sala</button>
+      <button class="btn ghost" data-back>← Regresar</button>
+    </div>
+  </div>
+  <div class="foot">Juego de ficción y humor para mayores de edad. Ningún yucateco fue lastimado… bueno, casi ninguno.</div>
+</section>
+
+<!-- SALA DE ESPERA -->
+<section id="lobby" class="screen hidden">
+  <div class="logo" style="margin-top:10px"><div class="l2 title-font">SALA DE INVITADOS</div></div>
+  <div class="panel">
+    <div class="small" style="margin:0">Pásales este código a tus cuates:</div>
+    <div class="code" id="l-code">-----</div>
+    <div class="row"><button class="btn" id="b-share">📤 Compartir</button><button class="btn ghost" id="b-copy">📋 Copiar</button></div>
+    <div class="seats" id="seats"></div>
+    <div class="count" id="l-count"></div>
+    <button class="btn green" id="b-ready">✋ ¡Estoy listo!</button>
+    <button class="btn" id="b-addbot">🤖 Agregar máquina</button>
+    <button class="btn ghost" id="b-leave">Salir de la sala</button>
+    <div class="small" id="l-hint">La partida empieza sola cuando todos estén listos (mínimo 2, máximo 4).</div>
+  </div>
+</section>
+
+<!-- JUEGO -->
+<section id="game" class="screen hidden">
+  <div class="wrap">
+    <div class="topbar">
+      <button class="ic" id="g-menu" title="Salir">✕</button>
+      <div class="turn" id="g-turn"></div>
+      <button class="ic" id="g-help" title="Reglas">?</button>
+      <button class="ic" id="g-voice" title="Gritón">🗣️</button>
+      <button class="ic" id="g-sound" title="Sonido">🔊</button>
+    </div>
+    <div class="opps" id="g-opps"></div>
+    <div class="table" id="g-table">
+      <div class="nope hidden" id="g-nope"><div class="msg" id="g-nope-msg"></div><div class="tb"><i id="g-nope-t"></i></div><button class="btn pink hidden" id="g-nope-b">🎩 ¡NEL, PELANA!</button></div>
+      <div class="piles">
+        <div class="pile" id="g-deckp"><div class="stack"><img id="g-deck" alt="Baraja"></div><div class="n" id="g-deckn"></div></div>
+        <div class="pile"><img id="g-disc" alt="Última carta"></div>
+      </div>
+      <div class="danger" id="g-danger"></div>
+      <div class="known hidden" id="g-known"></div>
+      <div class="griton" id="g-griton"><img id="g-gimg" alt=""><div class="t" id="g-gtxt"></div></div>
+      <div class="log" id="g-log"></div>
+    </div>
+    <div class="me">
+      <div class="tabla" id="g-tabla"></div>
+      <div class="actions">
+        <div class="sel" id="g-sel"></div>
+        <div class="row"><button class="btn red" id="g-play">Jugar</button><button class="btn" id="g-draw">Robar 🃏</button></div>
+        <button class="btn pink hidden" id="g-power">⚡ ¡LOTERÍA! Usar poder</button>
+      </div>
+    </div>
+    <div class="hand" id="g-hand"></div>
+  </div>
+</section>
+
+<div class="modal hidden" id="modal"><div class="box" id="mbox"></div></div>
+<div id="toast" style="opacity:0"></div>
+<div class="flash hidden" id="flash"><div class="w" id="flash-w"></div></div>
+
+<script>// ===== MOTOR DE LOTERÍA MEXICANA (sin DOM) =====
+const NOPE_MS = 3200, FAVOR_MS = 15000, DEFUSE_MS = 20000, POWER_MS = 25000, TURN_MS = 90000;
+const COMBOS = ['gallo','nopal','borracho','venado','alacran'];
+const T = {
+  muerte:{n:'La Muerte',k:'muerte',num:1,
+    d:'Si la robas y no tienes al Hmen, te mueres. Así de fácil.',
+    v:['¡Ya te cargó la flaca, pelana! Ni Hanal Pixán te van a poner.','La Muerte no avisa, solo llega como la luz de la CFE: cuando menos lo esperas.','¡Uay! Ya se te apareció la huesuda.']},
+  hmen:{n:'El Hmen',k:'hmen',num:2,
+    d:'Te salva de La Muerte con una limpia. Luego escondes a la Muerte donde quieras en la baraja.',
+    v:['Con ruda, huevo y copal, el Hmen te cura de todo mal.','Una limpia de cien pesos y la flaca se fue a molestar a otro.','El Hmen te sopló humo en la cara. Ni sabes qué fue, pero sigues vivo.']},
+  catrin:{n:'El Catrín',k:'nope',num:3,
+    d:'¡Nel, pelana! Cancela la carta que alguien acaba de jugar. Se juega en cualquier momento, hasta encima de otro Catrín.',
+    v:['¡Nel, pelana! El Catrín dice que ni de chiste.','El Catrín se acomodó el monóculo y dijo: “ni lo sueñes, huach”.','¡Mare, qué nel tan elegante!']},
+  valiente:{n:'El Valiente',k:'attack',num:4,
+    d:'Terminas tu turno sin robar y el siguiente se chuta 2 turnos.',
+    v:['Agarra el machete y pásale el bulto al de al lado.','El Valiente nunca se raja… nomás le pasa el problema a otro.','¡Échale ganas, xic! Dos turnos para ti.']},
+  hamaca:{n:'La Hamaca',k:'skip',num:5,
+    d:'Hace 45 grados: terminas un turno sin robar.',
+    v:['Hace 45 grados, mejor a la hamaca. Ahí que se muera otro.','La hamaca no se mueve sola, pero tú tampoco.','Siesta yucateca: de 2 a 6, no me molesten.']},
+  compadre:{n:'El Compadre',k:'favor',num:6,t:1,
+    d:'Un rival te tiene que dar una carta. Él escoge cuál, el muy codo.',
+    v:['Compadre, préstame una carta… ahí te la pago en Xmatkuil.','El compadre que pide prestado nunca regresa ni el tóper.','¿Me disparas una, compa? Al rato te invito un panucho.']},
+  mundo:{n:'El Mundo',k:'shuffle',num:7,
+    d:'Revuelve la baraja. Nadie sabe ya dónde anda la flaca.',
+    v:['Se revolvió el mundo como el Periférico en quincena.','El Mundo da vueltas y tú sigues debiendo.','¡A revolver! Como el kibi en el aceite.']},
+  luna:{n:'La Luna',k:'future',num:8,
+    d:'Ves en secreto las 3 cartas de arriba de la baraja.',
+    v:['La Luna de Izamal te deja ver las tres de arriba.','Con la luz de la luna se ve todo… menos tu futuro económico.','Échale un ojo al porvenir, que de todos modos pinta feo.']},
+  chancla:{n:'La Chancla',k:'tattack',num:9,t:1,
+    d:'Escoges a quién le cae: terminas tu turno sin robar y esa persona juega 2 turnos.',
+    v:['¡Ahí te va la chancla de tu mamá! A quien le caiga.','La chancla voladora tiene mejor puntería que la policía.','¡ZAS! Ni el Hmen te cura ese chanclazo.']},
+  tlacuache:{n:'El Tlacuache',k:'bottom',num:10,
+    d:'Robas la carta de hasta abajo de la baraja y terminas tu turno.',
+    v:['Como tlacuache en el patio: robas por abajo.','El tlacuache se hace el muerto, tú haz lo mismo.','Por debajo de la mesa, como los contratos del ayuntamiento.']},
+  diablito:{n:'El Diablito',k:'castigo',num:11,t:1,
+    d:'¡Castigo! El rival que escojas tira una carta al azar.',
+    v:['El Diablito te jaló una carta. Así es la vida, huach.','¡Castigo! Por andar de presumido en el Paseo de Montejo.','El Diablito ni siquiera pidió permiso, como tu tía.']},
+  gallo:{n:'El Gallo',k:'combo',num:12,
+    d:'Sola no hace nada. 2 iguales: robas una carta al azar. 3 iguales: pides la carta que quieras.',
+    v:['El que madruga… igual se lo carga la flaca.','El Gallo canta a las 4 y nadie en la colonia lo quiere.','Kikirikí, y tú sin chamba.']},
+  nopal:{n:'El Nopal',k:'combo',num:13,
+    d:'Sola no hace nada. 2 iguales: robas una carta al azar. 3 iguales: pides la carta que quieras.',
+    v:['Al nopal solo se le arriman cuando tiene tunas.','Tienes el nopal en la frente y te haces el europeo.','Espinoso como el recibo del predial.']},
+  borracho:{n:'El Borracho',k:'combo',num:14,
+    d:'Sola no hace nada. 2 iguales: robas una carta al azar. 3 iguales: pides la carta que quieras.',
+    v:['Tres caguamas y ya se siente diputado.','El Borracho jura que mañana sí deja la chela.','¡Hic! Que alguien le pida su Uber… o su triciclo.']},
+  venado:{n:'El Venado',k:'combo',num:15,
+    d:'Sola no hace nada. 2 iguales: robas una carta al azar. 3 iguales: pides la carta que quieras.',
+    v:['Corre, venado, que te persigue el SAT.','El venado de Yucatán: bonito, rápido y siempre en peligro.','Ahí va el venado, como tú cuando te cobran.']},
+  alacran:{n:'El Alacrán',k:'combo',num:16,
+    d:'Sola no hace nada. 2 iguales: robas una carta al azar. 3 iguales: pides la carta que quieras.',
+    v:['El Alacrán es como tu ex: chiquito pero ponzoñoso.','Sacude el zapato antes de ponértelo, pelana.','Pica y se esconde, como el que no paga la tanda.']}
+};
+const COUNTS = {catrin:5,valiente:4,hamaca:4,compadre:4,mundo:4,luna:5,chancla:3,tlacuache:3,diablito:3,gallo:4,nopal:4,borracho:4,venado:4,alacran:4};
+const TABLA_POOL = Object.keys(T).filter(k=>k!=='muerte');
+const MUERTES = [
+  'se lo cargó la flaca por ir a Progreso sin bloqueador',
+  'murió de calor esperando el camión de la ruta 52',
+  'le dio el aire por bañarse después de comer cochinita',
+  'lo atropelló un triciclo en pleno centro',
+  'se le olvidó que era de Mérida y salió a las 3 de la tarde',
+  'se infartó cuando vio el recibo de la luz de mayo',
+  'se ahogó con un hueso de relleno negro',
+  'le cayó un coco en la cabeza en Celestún',
+  'se murió de envidia viendo las casas del norte',
+  'lo picó el alacrán de su ex',
+  'se comió el habanero entero para presumir',
+  'se fue en el Hanal Pixán y ya no quiso regresar'
+];
+const rnd = n => Math.floor(Math.random()*n);
+const pick = a => a[rnd(a.length)];
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function newGame(seats){
+  const n = seats.length;
+  let id = 1; const mk = t => ({id:id++, t});
+  let base = [];
+  for(const [t,c] of Object.entries(COUNTS)) for(let i=0;i<c;i++) base.push(mk(t));
+  shuffle(base);
+  if(n===2) base = base.slice(0, 40);
+  else if(n===3) base = base.slice(0, 48);
+  const s = {players:[], deck:[], discard:[], cur:0, turns:1, phase:'play', pending:null, favor:null, defuse:null, power:null,
+    known:[], future:[], log:[], logId:0, rev:1, winner:null, lastCall:null, acts:0, deadline:0, now:Date.now(), deaths:[], uid:1, round:1};
+  seats.forEach((st,i)=>{
+    const hand = [mk('hmen')];
+    for(let k=0;k<7;k++) hand.push(base.pop());
+    s.players.push({name:st.name, bot:!!st.bot, alive:true, hand, tabla:newTabla(), marks:newMarks(), power:false, powers:0, conn:true, avatar: st.avatar ?? i});
+    s.known.push([]); s.future.push(null);
+  });
+  const extraHmen = 2;
+  for(let i=0;i<extraHmen;i++) base.push(mk('hmen'));
+  for(let i=0;i<n-1;i++) base.push(mk('muerte'));
+  s.deck = shuffle(base);
+  s.cur = rnd(n);
+  s.nextId = id; s.total = s.deck.length + s.players.reduce((a,p)=>a+p.hand.length,0);
+  log(s, `¡Corre y se va! Empieza ${s.players[s.cur].name}. Hay ${n-1} Muerte${n>2?'s':''} escondida${n>2?'s':''} en la baraja.`, 'start');
+  startTurnTimer(s);
+  return s;
+}
+function newTabla(){ const t = shuffle(TABLA_POOL.slice()).slice(0,8); t.splice(4,0,'muerte'); return t; }
+function newMarks(){ const m = Array(9).fill(false); m[4] = true; return m; }
+function log(s, txt, kind='info', who=null){ s.log.push({id:++s.logId, txt, kind, who}); if(s.log.length>60) s.log.shift(); }
+function call(s, t, who){ s.lastCall = {id:++s.uid, t, who, v:pick(T[t].v)}; if(t!=='muerte') s.players.forEach((p,i)=>mark(s,i,t)); }
+function alive(s){ return s.players.map((p,i)=>i).filter(i=>s.players[i].alive); }
+function nextAlive(s, i){ const n=s.players.length; for(let k=1;k<=n;k++){ const j=(i+k)%n; if(s.players[j].alive) return j; } return i; }
+function startTurnTimer(s){ s.deadline = s.players[s.cur].bot ? 0 : s.now + TURN_MS; }
+
+function mark(s, pi, t){
+  const p = s.players[pi]; if(!p.alive) return;
+  const i = p.tabla.indexOf(t);
+  if(i<0 || p.marks[i]) return;
+  p.marks[i] = true;
+  if(!p.power && p.marks.every(Boolean)){
+    p.power = true;
+    log(s, `¡LOTERÍA! ${p.name} llenó su cartilla. No gana nada (bienvenido a México), pero ya tiene la vista de rayos X de la tía chismosa.`, 'loteria', pi);
+  }
+}
+function endTurn(s){
+  s.turns--; s.acts = 0;
+  if(s.turns<=0) nextPlayer(s, 1);
+  else startTurnTimer(s);
+}
+function nextPlayer(s, turns, to){
+  s.cur = to ?? nextAlive(s, s.cur); s.turns = turns; s.acts = 0; s.round++;
+  startTurnTimer(s);
+}
+function eliminate(s, pi, cause){
+  const p = s.players[pi]; if(!p.alive) return;
+  p.alive = false; s.discard.push(...p.hand); p.hand = []; p.power = false;
+  s.deaths.push(pi);
+  log(s, `💀 ${p.name} ${cause}. Descanse en paz… o no, la verdad nadie lo quería.`, 'death', pi);
+  // una Muerte menos en la baraja para que quede (vivos - 1)
+  const left = alive(s);
+  const extra = s.deck.filter(c=>c.t==='muerte').length - (left.length-1);
+  for(let k=0;k<extra;k++){ const j = s.deck.findIndex(c=>c.t==='muerte'); if(j>=0) s.discard.push(...s.deck.splice(j,1)); }
+  if(left.length===1){
+    s.winner = left[0]; s.phase = 'over';
+    log(s, `🏆 ¡${s.players[left[0]].name} sobrevivió! La flaca dice que al rato vuelve por ti.`, 'win', left[0]);
+    return;
+  }
+  if(s.cur===pi){ s.phase='play'; nextPlayer(s, 1); }
+}
+function hasType(p, t){ return p.hand.findIndex(c=>c.t===t); }
+function takeIds(p, ids){
+  const out=[]; for(const id of ids){ const j=p.hand.findIndex(c=>c.id===id); if(j<0) return null; out.push(p.hand[j]); }
+  p.hand = p.hand.filter(c=>!ids.includes(c.id)); return out;
+}
+
+function doDraw(s, pi, where){
+  const p = s.players[pi];
+  const c = where==='bottom' ? s.deck.pop() : s.deck.shift();
+  if(!c){ endTurn(s); return; }
+  s.known.forEach(k=>{ const j=k.indexOf(c.id); if(j>=0) k.splice(j,1); });
+  if(c.t==='muerte'){
+    call(s, 'muerte', pi);
+    const h = hasType(p, 'hmen');
+    if(h>=0){
+      const hm = p.hand.splice(h,1)[0]; s.discard.push(hm); mark(s, pi, 'hmen');
+      log(s, `☠️ ¡${p.name} sacó a LA MUERTE! …pero el Hmen le hizo una limpia. Ahora la va a esconder otra vez.`, 'defuse', pi);
+      s.phase = 'defuse'; s.defuse = {pi, card:c, deadline: s.now + DEFUSE_MS};
+    } else {
+      s.discard.push(c);
+      eliminate(s, pi, pick(MUERTES));
+      if(s.phase!=='over') s.phase='play';
+    }
+    return;
+  }
+  p.hand.push(c); mark(s, pi, c.t);
+  log(s, `${p.name} robó una carta${where==='bottom'?' de abajo':''}.`, 'draw', pi);
+  endTurn(s);
+}
+
+// ¿qué necesita una jugada?
+function playInfo(s, pi, ids){
+  const p = s.players[pi];
+  const cs = ids.map(id=>p.hand.find(c=>c.id===id));
+  if(cs.some(c=>!c)) return {err:'Esa carta no la tienes.'};
+  const t = cs[0].t;
+  if(cs.some(c=>c.t!==t)) return {err:'Para combinar tienen que ser iguales.'};
+  const k = T[t].k;
+  if(cs.length===1){
+    if(k==='combo') return {err:`${T[t].n} sola no hace nada: junta 2 o 3 iguales.`};
+    if(k==='hmen') return {err:'El Hmen se usa solito cuando te sale La Muerte.'};
+    if(k==='nope') return {err:'El Catrín solo se juega para cancelar lo que alguien más acaba de jugar.'};
+    return {t, n:1, target: !!T[t].t};
+  }
+  if(cs.length===2 || cs.length===3){
+    if(k!=='combo') return {err:'Solo las figuras (Gallo, Nopal, Borracho, Venado, Alacrán) se combinan.'};
+    return {t, n:cs.length, target:true, named: cs.length===3};
+  }
+  return {err:'Juega 1 carta, o 2 o 3 figuras iguales.'};
+}
+
+function act(s, pi, a, now){
+  s.now = now ?? Date.now();
+  const p = s.players[pi];
+  const fail = err => ({ok:false, err});
+  if(!p || s.phase==='over') return fail('La partida ya terminó.');
+  if(!p.alive) return fail('Ya estás muerto, pelana. Nomás puedes mirar.');
+  switch(a.t){
+    case 'play': {
+      if(s.phase!=='play' || s.cur!==pi) return fail('No es tu turno.');
+      const info = playInfo(s, pi, a.ids||[]);
+      if(info.err) return fail(info.err);
+      if(info.target){
+        const tp = s.players[a.target];
+        if(!tp || !tp.alive || a.target===pi) return fail('Escoge a un rival vivo.');
+      }
+      if(info.named && !T[a.named]) return fail('Di qué carta quieres pedir.');
+      const cards = takeIds(p, a.ids); s.discard.push(...cards);
+      mark(s, pi, info.t); call(s, info.t, pi);
+      const tn = info.target ? ` contra ${s.players[a.target].name}` : '';
+      const what = info.n===1 ? T[info.t].n : `${info.n} × ${T[info.t].n}${info.named?` (pide ${T[a.named].n})`:''}`;
+      log(s, `${p.name} jugó ${what}${tn}.`, 'play', pi);
+      s.pending = {uid:++s.uid, by:pi, t:info.t, n:info.n, target: info.target? a.target : null, named: a.named||null, nopes:0, deadline: s.now + NOPE_MS, last:null};
+      s.phase = 'nope'; s.acts++;
+      break;
+    }
+    case 'nope': {
+      if(s.phase!=='nope') return fail('No hay nada que cancelar.');
+      const h = hasType(p, 'catrin'); if(h<0) return fail('No tienes Catrín.');
+      const c = p.hand.splice(h,1)[0]; s.discard.push(c);
+      mark(s, pi, 'catrin'); call(s, 'catrin', pi);
+      s.pending.nopes++; s.pending.last = pi; s.pending.deadline = s.now + NOPE_MS; s.pending.uid = ++s.uid;
+      log(s, `🎩 ${p.name}: ¡NEL, PELANA! ${s.pending.nopes%2? 'Cancelado.' : '…y se des-cancela. ¡Sí va!'}`, 'nope', pi);
+      break;
+    }
+    case 'draw': {
+      if(s.phase!=='play' || s.cur!==pi) return fail('No es tu turno.');
+      doDraw(s, pi, 'top'); break;
+    }
+    case 'give': {
+      if(s.phase!=='favor' || s.favor.from!==pi) return fail('Nadie te está pidiendo nada.');
+      const got = takeIds(p, [a.id]); if(!got) return fail('Esa carta no la tienes.');
+      const to = s.players[s.favor.to]; to.hand.push(got[0]); mark(s, s.favor.to, got[0].t);
+      log(s, `${p.name} le dio una carta a ${to.name} de mala gana.`, 'give', pi);
+      s.favor = null; s.phase = 'play';
+      break;
+    }
+    case 'place': {
+      if(s.phase!=='defuse' || s.defuse.pi!==pi) return fail('No te toca esconder a la Muerte.');
+      const pos = Math.max(0, Math.min(s.deck.length, a.pos|0));
+      s.deck.splice(pos, 0, s.defuse.card);
+      s.known[pi] = s.known[pi].filter(id=>s.deck.some(c=>c.id===id)).concat([s.defuse.card.id]);
+      log(s, `${p.name} volvió a esconder a la Muerte en la baraja… quién sabe dónde 👀`, 'place', pi);
+      s.defuse = null; s.phase = 'play';
+      endTurn(s);
+      break;
+    }
+    case 'power': {
+      if(s.phase!=='play' || s.cur!==pi) return fail('El poder se usa en tu turno.');
+      if(!p.power) return fail('Todavía no llenas tu cartilla.');
+      const tp = s.players[a.target];
+      if(!tp || !tp.alive || a.target===pi) return fail('Escoge a un rival vivo.');
+      call(s, 'luna', pi); s.lastCall.v = '¡LOTERÍA! Vista de rayos X de la tía chismosa.';
+      s.future[pi] = {id:++s.uid, kind:'peek', who:a.target, types: tp.hand.map(c=>c.t)};
+      if(tp.hand.length<=3){
+        log(s, `⚡ ${p.name} usó su ¡LOTERÍA! contra ${tp.name}, que nomás tenía ${tp.hand.length} carta${tp.hand.length===1?'':'s'}…`, 'power', pi);
+        usePower(s, pi);
+        eliminate(s, a.target, 'se quedó sin cartas y se lo comió la cartilla de '+p.name);
+      } else {
+        log(s, `⚡ ${p.name} usó su ¡LOTERÍA! y le está viendo las cartas a ${tp.name}. Le va a quitar 3.`, 'power', pi);
+        s.phase = 'power'; s.power = {by:pi, target:a.target, deadline: s.now + POWER_MS};
+      }
+      break;
+    }
+    case 'take': {
+      if(s.phase!=='power' || s.power.by!==pi) return fail('No estás usando el poder.');
+      const tp = s.players[s.power.target];
+      const ids = [...new Set(a.ids||[])];
+      const need = Math.min(3, tp.hand.length);
+      if(ids.length!==need) return fail(`Escoge ${need} cartas.`);
+      const got = takeIds(tp, ids); if(!got) return fail('Esas cartas no las tiene.');
+      s.discard.push(...got);
+      log(s, `${p.name} le tiró ${got.map(c=>T[c.t].n).join(', ')} a ${tp.name}. ¡Qué maldad!`, 'take', pi);
+      usePower(s, pi); s.power = null; s.phase = 'play';
+      break;
+    }
+    default: return fail('Jugada rara.');
+  }
+  s.rev++;
+  return {ok:true};
+}
+function usePower(s, pi){
+  const p = s.players[pi]; p.power = false; p.powers++; p.tabla = newTabla(); p.marks = newMarks();
+}
+
+function resolve(s){
+  const pd = s.pending; s.pending = null; s.phase = 'play';
+  if(pd.nopes%2===1){ log(s, `La jugada de ${s.players[pd.by].name} se quedó en nada. ¡Ni modo!`, 'cancel', pd.by); return; }
+  const by = s.players[pd.by], tg = pd.target!=null ? s.players[pd.target] : null;
+  if(tg && !tg.alive) return;
+  switch(T[pd.t].k){
+    case 'attack': log(s, `${s.players[nextAlive(s,pd.by)].name} se chuta 2 turnos.`, 'attack'); nextPlayer(s, 2); break;
+    case 'tattack': log(s, `¡Chanclazo! ${tg.name} se chuta 2 turnos.`, 'attack'); nextPlayer(s, 2, pd.target); break;
+    case 'skip': log(s, `${by.name} se echó en la hamaca y no robó.`, 'skip'); endTurn(s); break;
+    case 'shuffle': shuffle(s.deck); s.known = s.known.map(()=>[]); log(s, 'Se revolvió la baraja. Nadie sabe dónde anda la flaca.', 'shuffle'); break;
+    case 'future': {
+      const top = s.deck.slice(0,3); s.known[pd.by] = top.map(c=>c.id);
+      s.future[pd.by] = {id:++s.uid, kind:'future', types: top.map(c=>c.t)};
+      log(s, `${by.name} vio las 3 de arriba y puso cara de… mejor ni te digo.`, 'future');
+      break;
+    }
+    case 'bottom': doDraw(s, pd.by, 'bottom'); break;
+    case 'favor':
+      if(!tg.hand.length){ log(s, `${tg.name} no tiene ni para el camión. No le dio nada.`, 'info'); break; }
+      s.phase = 'favor'; s.favor = {from:pd.target, to:pd.by, deadline: s.now + FAVOR_MS};
+      break;
+    case 'castigo': {
+      if(!tg.hand.length){ log(s, `${tg.name} ya no tenía cartas. El Diablito se fue triste.`, 'info'); break; }
+      const c = tg.hand.splice(rnd(tg.hand.length),1)[0]; s.discard.push(c);
+      log(s, `😈 Castigo: ${tg.name} tiró ${T[c.t].n}.`, 'castigo', pd.target);
+      break;
+    }
+    case 'combo':
+      if(pd.n===2){
+        if(!tg.hand.length){ log(s, `${tg.name} no tenía nada que robarle.`, 'info'); break; }
+        const c = tg.hand.splice(rnd(tg.hand.length),1)[0]; by.hand.push(c); mark(s, pd.by, c.t);
+        log(s, `${by.name} le bajó una carta a ${tg.name} sin que se diera cuenta.`, 'steal', pd.by);
+      } else {
+        const j = tg.hand.findIndex(c=>c.t===pd.named);
+        if(j<0){ log(s, `${tg.name} no tenía ${T[pd.named].n}. ¡Ups!`, 'info'); break; }
+        const c = tg.hand.splice(j,1)[0]; by.hand.push(c); mark(s, pd.by, c.t);
+        log(s, `${tg.name} tuvo que darle ${T[pd.named].n} a ${by.name}.`, 'steal', pd.by);
+      }
+      break;
+  }
+}
+
+// avanza relojes; devuelve true si cambió algo
+function tick(s, now){
+  s.now = now ?? Date.now();
+  let ch = false;
+  if(s.phase==='nope' && s.now>=s.pending.deadline){ resolve(s); ch = true; }
+  else if(s.phase==='favor' && s.now>=s.favor.deadline){
+    const p = s.players[s.favor.from]; act(s, s.favor.from, {t:'give', id: botGive(p)}, s.now); ch = true;
+  } else if(s.phase==='defuse' && s.now>=s.defuse.deadline){
+    act(s, s.defuse.pi, {t:'place', pos: rnd(s.deck.length+1)}, s.now); ch = true;
+  } else if(s.phase==='power' && s.now>=s.power.deadline){
+    const tp = s.players[s.power.target];
+    act(s, s.power.by, {t:'take', ids: shuffle(tp.hand.map(c=>c.id)).slice(0,3)}, s.now); ch = true;
+  } else if(s.phase==='play' && s.deadline && s.now>=s.deadline){
+    log(s, `${s.players[s.cur].name} se quedó dormido. Roba solito.`, 'info');
+    doDraw(s, s.cur, 'top'); ch = true;
+  }
+  if(ch) s.rev++;
+  return ch;
+}
+
+// ===== VISTA PARA CADA JUGADOR =====
+function viewFor(s, pi){
+  const me = s.players[pi];
+  const known = me ? s.known[pi].map(id=>{ const i=s.deck.findIndex(c=>c.id===id); return i>=0?{pos:i,t:s.deck[i].t}:null; }).filter(Boolean).sort((a,b)=>a.pos-b.pos) : [];
+  return {
+    me: pi, rev: s.rev,
+    players: s.players.map((p,i)=>({name:p.name, bot:p.bot, alive:p.alive, count:p.hand.length, marks:p.marks.filter(Boolean).length, power:p.power, conn:p.conn, avatar:p.avatar, tabla: p.tabla, mk: p.marks})),
+    hand: me ? me.hand.map(c=>({id:c.id,t:c.t})) : [],
+    deck: s.deck.length, muertes: s.deck.filter(c=>c.t==='muerte').length,
+    discardTop: s.discard.length ? s.discard[s.discard.length-1].t : null,
+    cur: s.cur, turns: s.turns, phase: s.phase,
+    pending: s.pending && {by:s.pending.by, t:s.pending.t, n:s.pending.n, target:s.pending.target, named:s.pending.named, nopes:s.pending.nopes, last:s.pending.last, ms: s.pending.deadline - s.now, uid:s.pending.uid},
+    favor: s.favor && {from:s.favor.from, to:s.favor.to, ms:s.favor.deadline - s.now},
+    defuse: s.defuse && {pi:s.defuse.pi, ms:s.defuse.deadline - s.now},
+    power: s.power && {by:s.power.by, target:s.power.target, ms:s.power.deadline - s.now,
+      hand: s.power.by===pi ? s.players[s.power.target].hand.map(c=>({id:c.id,t:c.t})) : null},
+    turnMs: s.deadline ? s.deadline - s.now : 0,
+    known, future: s.future[pi], log: s.log.slice(-40), lastCall: s.lastCall, winner: s.winner, deaths: s.deaths
+  };
+}
+
+// ===== LA MÁQUINA (bots) =====
+function botGive(p){
+  const order = ['gallo','nopal','borracho','venado','alacran','mundo','tlacuache','compadre','diablito','luna','hamaca','chancla','valiente','catrin','hmen'];
+  const sorted = p.hand.slice().sort((a,b)=>order.indexOf(a.t)-order.indexOf(b.t));
+  return sorted[0]?.id;
+}
+function botTurn(s, pi){
+  const p = s.players[pi];
+  const opp = alive(s).filter(i=>i!==pi);
+  const byCards = opp.slice().sort((a,b)=>s.players[a].hand.length - s.players[b].hand.length);
+  if(p.power){
+    const weak = byCards.find(i=>s.players[i].hand.length<=3);
+    return {t:'power', target: weak ?? byCards[byCards.length-1]};
+  }
+  const first = id => p.hand.find(c=>c.t===id);
+  const knownTop = s.deck.length && s.known[pi].includes(s.deck[0].id) ? s.deck[0].t : null;
+  const hasHmen = !!first('hmen');
+  const risk = s.deck.filter(c=>c.t==='muerte').length / Math.max(1, s.deck.length);
+  const strong = byCards[byCards.length-1];
+  if(knownTop==='muerte' || (!hasHmen && risk>0.3 && Math.random()<0.6)){
+    for(const t of ['hamaca','valiente','chancla','mundo','tlacuache']){
+      const c = first(t); if(c) return {t:'play', ids:[c.id], target: t==='chancla' ? strong : undefined};
+    }
+  }
+  if(knownTop && knownTop!=='muerte') return {t:'draw'};
+  if(s.acts>=3) return {t:'draw'};
+  if(!knownTop && first('luna') && (risk>0.12 || !hasHmen) && Math.random()<0.6) return {t:'play', ids:[first('luna').id]};
+  for(const t of COMBOS){
+    const cs = p.hand.filter(c=>c.t===t);
+    if(cs.length>=3 && Math.random()<0.7) return {t:'play', ids:cs.slice(0,3).map(c=>c.id), target: strong, named:'hmen'};
+    if(cs.length>=2 && Math.random()<0.55) return {t:'play', ids:cs.slice(0,2).map(c=>c.id), target: strong};
+  }
+  if(first('compadre') && Math.random()<0.35) return {t:'play', ids:[first('compadre').id], target: strong};
+  if(first('diablito') && Math.random()<0.35) return {t:'play', ids:[first('diablito').id], target: strong};
+  return {t:'draw'};
+}
+function botNope(s, pi){
+  const pd = s.pending; if(!pd) return false;
+  const p = s.players[pi]; if(!p.alive || hasType(p,'catrin')<0) return false;
+  if(pd.last===pi) return false;
+  const willHappen = pd.nopes%2===0;
+  if(willHappen){
+    if(pd.by===pi) return false;
+    if(pd.target===pi) return Math.random()<0.7;
+    if(pd.t==='valiente' && nextAlive(s,pd.by)===pi) return Math.random()<0.6;
+    return Math.random()<0.05;
+  }
+  return pd.by===pi ? Math.random()<0.6 : false;
+}
+function botPlace(s, pi){
+  const n = s.deck.length;
+  const r = Math.random();
+  if(r<0.45) return Math.min(n, rnd(2));        // arriba para el siguiente
+  if(r<0.7) return Math.min(n, 2+rnd(3));
+  return rnd(n+1);
+}
+function botTake(s, pi){
+  const tp = s.players[s.power.target];
+  const val = ['hmen','catrin','valiente','chancla','hamaca','luna','mundo','tlacuache','compadre','diablito'];
+  return tp.hand.slice().sort((a,b)=>{ const ia=val.indexOf(a.t), ib=val.indexOf(b.t); return (ia<0?99:ia)-(ib<0?99:ib); }).slice(0,3).map(c=>c.id);
+}
+
+// Lo que haría un bot ahora mismo (o null)
+function botAction(s, pi){
+  const p = s.players[pi]; if(!p.alive || s.phase==='over') return null;
+  if(s.phase==='play' && s.cur===pi) return botTurn(s, pi);
+  if(s.phase==='favor' && s.favor.from===pi) return {t:'give', id: botGive(p)};
+  if(s.phase==='defuse' && s.defuse.pi===pi) return {t:'place', pos: botPlace(s, pi)};
+  if(s.phase==='power' && s.power.by===pi) return {t:'take', ids: botTake(s, pi)};
+  return null;
+}
+
+if(typeof module!=='undefined') module.exports = {T, COMBOS, newGame, act, tick, viewFor, botAction, botNope, playInfo, NOPE_MS};
+</script>
+<script>// ===== ARTE DE LAS CARTAS (SVG original estilo lotería antigua) =====
+const INK = '#1d1712';
+const O = `stroke="${INK}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"`;
+const o2 = `stroke="${INK}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"`;
+const SKIN = '#c98b5a', SKIN2 = '#e8b98d';
+const flower = (x,y,r,c) => `<g>${[0,72,144,216,288].map(a=>`<circle cx="${x+Math.cos(a*Math.PI/180)*r}" cy="${y+Math.sin(a*Math.PI/180)*r}" r="${r*0.75}" fill="${c}" ${o2}/>`).join('')}<circle cx="${x}" cy="${y}" r="${r*0.6}" fill="#ffd23f" ${o2}/></g>`;
+const ART = {
+muerte: {bg:'#e98a2b', g:`
+  <circle cx="30" cy="30" r="20" fill="#ffd23f" opacity=".7"/>
+  ${flower(22,190,7,'#d6336c')}${flower(145,200,6,'#ffd23f')}${flower(140,30,6,'#d6336c')}
+  <path d="M126 22 L114 216" stroke="#7a4a21" stroke-width="7" stroke-linecap="round"/>
+  <path d="M126 22 L114 216" ${O} fill="none" opacity=".35"/>
+  <path d="M128 24 Q92 4 52 34 Q92 22 130 40 Z" fill="#cfd6db" ${O}/>
+  <path d="M54 92 L110 92 L126 206 L38 206 Z" fill="#fbf7ef" ${O}/>
+  <rect x="66" y="92" width="32" height="16" fill="none" ${o2}/>
+  ${flower(74,100,3.5,'#d6336c')}${flower(90,100,3.5,'#2b9348')}
+  <path d="M41 184 L123 184" ${o2}/>
+  ${flower(54,195,4.5,'#d6336c')}${flower(72,195,4.5,'#2b9348')}${flower(90,195,4.5,'#ffd23f')}${flower(108,195,4.5,'#4361ee')}
+  <path d="M58 106 L40 140 L56 150" fill="none" stroke="#fbf7ef" stroke-width="7"/><path d="M58 106 L40 140 L56 150" fill="none" ${o2}/>
+  <path d="M106 106 L118 128" fill="none" stroke="#fbf7ef" stroke-width="7"/><path d="M106 106 L118 128" fill="none" ${o2}/>
+  <circle cx="119" cy="130" r="6" fill="#fbf7ef" ${o2}/>
+  <path d="M68 206 L64 216 M94 206 L98 216" ${O}/>
+  <circle cx="82" cy="58" r="27" fill="#fbf7ef" ${O}/>
+  <path d="M66 74 Q82 90 98 74 L96 84 Q82 94 68 84 Z" fill="#fbf7ef" ${O}/>
+  <path d="M72 79 L72 87 M78 80 L78 89 M84 80 L84 89 M90 79 L90 87" ${o2}/>
+  <ellipse cx="72" cy="56" rx="8" ry="9" fill="${INK}"/><ellipse cx="92" cy="56" rx="8" ry="9" fill="${INK}"/>
+  ${flower(72,56,2,'#d6336c')}${flower(92,56,2,'#2b9348')}
+  <path d="M82 64 L78 72 L86 72 Z" fill="${INK}"/>
+  <path d="M70 40 Q82 34 94 40" fill="none" stroke="#d6336c" stroke-width="2"/>
+  ${flower(62,34,5,'#d6336c')}${flower(82,28,6,'#ffd23f')}${flower(102,34,5,'#4361ee')}
+`},
+hmen: {bg:'#4f9d69', g:`
+  <path d="M30 210 Q24 150 34 120" fill="none" stroke="#bfc6c4" stroke-width="5" opacity=".7"/>
+  <path d="M22 200 Q40 160 22 120 Q10 90 30 64" fill="none" stroke="#e7ece9" stroke-width="4" opacity=".75"/>
+  <path d="M14 214 L44 214 L40 194 L18 194 Z" fill="#b5532c" ${O}/>
+  <path d="M48 104 Q82 92 116 104 L128 220 L36 220 Z" fill="#fbf7ef" ${O}/>
+  <path d="M68 104 L68 220 M96 104 L96 220" ${o2} opacity=".6"/>
+  <circle cx="82" cy="130" r="2.5" fill="${INK}"/><circle cx="82" cy="150" r="2.5" fill="${INK}"/><circle cx="82" cy="170" r="2.5" fill="${INK}"/>
+  <path d="M116 112 L138 142 L130 150" fill="none" stroke="#fbf7ef" stroke-width="11"/><path d="M116 112 L138 142 L130 150" fill="none" ${o2}/>
+  <ellipse cx="132" cy="138" rx="9" ry="12" fill="#fffdf6" ${O}/>
+  <path d="M48 112 L32 140 L44 150" fill="none" stroke="#fbf7ef" stroke-width="11"/><path d="M48 112 L32 140 L44 150" fill="none" ${o2}/>
+  <path d="M40 146 L24 110" stroke="#2d6a4f" stroke-width="3"/>
+  ${[0,1,2,3,4].map(i=>`<ellipse cx="${26+i*3}" cy="${114+i*7}" rx="7" ry="3" fill="#74c69d" ${o2} transform="rotate(${-30+i*12} ${26+i*3} ${114+i*7})"/>`).join('')}
+  <circle cx="82" cy="78" r="21" fill="${SKIN}" ${O}/>
+  <path d="M70 76 Q74 73 78 76 M86 76 Q90 73 94 76" fill="none" ${o2}/>
+  <path d="M68 88 Q82 80 96 88 Q90 94 82 90 Q74 94 68 88 Z" fill="#f1f1f1" ${o2}/>
+  <path d="M66 68 L72 70 M92 70 L98 68" ${o2}/>
+  <ellipse cx="82" cy="58" rx="58" ry="12" fill="#e9c46a" ${O}/>
+  <path d="M60 58 Q60 26 82 24 Q104 26 104 58 Z" fill="#e9c46a" ${O}/>
+  <path d="M61 50 Q82 56 103 50" fill="none" stroke="#9c6644" stroke-width="5"/>
+  <path d="M40 60 L124 60 M50 64 L114 64" stroke="#c9a227" stroke-width="1.5"/>
+`},
+catrin: {bg:'#c8323a', g:`
+  <path d="M42 112 Q82 100 122 112 L134 220 L30 220 Z" fill="#22252b" ${O}/>
+  <path d="M70 108 L82 150 L94 108 Z" fill="#fbf7ef" ${o2}/>
+  <path d="M70 112 L82 120 L94 112 L94 126 L82 120 L70 126 Z" fill="#e63946" ${o2}/>
+  <path d="M82 150 L82 220" stroke="#000" stroke-width="2" opacity=".5"/>
+  <path d="M122 120 L140 160 L132 170" fill="none" stroke="#22252b" stroke-width="12"/>
+  <path d="M138 168 L128 220" stroke="${INK}" stroke-width="4"/><circle cx="138" cy="166" r="6" fill="#ffd23f" ${o2}/>
+  <path d="M44 120 L26 92 L22 70" fill="none" stroke="#22252b" stroke-width="12" stroke-linecap="round"/>
+  <path d="M10 64 Q8 44 22 44 L34 44 Q38 60 32 72 Z" fill="${SKIN2}" ${O}/>
+  <path d="M14 48 L14 30 M20 46 L20 26 M26 46 L26 28 M32 48 L32 34" stroke="${SKIN2}" stroke-width="5" stroke-linecap="round"/>
+  <path d="M14 48 L14 30 M20 46 L20 26 M26 46 L26 28 M32 48 L32 34" fill="none" ${o2} opacity=".7"/>
+  <circle cx="82" cy="80" r="22" fill="${SKIN2}" ${O}/>
+  <circle cx="91" cy="76" r="7" fill="none" ${o2}/><path d="M98 78 Q104 92 100 104" fill="none" stroke="#ffd23f" stroke-width="1.5"/>
+  <circle cx="73" cy="76" r="2.5" fill="${INK}"/><circle cx="91" cy="76" r="2.5" fill="${INK}"/>
+  <path d="M66 70 L78 72 M86 72 L98 69" ${o2}/>
+  <path d="M82 88 Q70 84 62 92 Q70 88 76 92 Q82 88 82 88 Q82 88 88 92 Q94 88 102 92 Q94 84 82 88 Z" fill="${INK}"/>
+  <path d="M76 98 Q82 102 88 98" fill="none" ${o2}/>
+  <rect x="62" y="20" width="40" height="40" rx="3" fill="#15171b" ${O}/>
+  <rect x="62" y="48" width="40" height="7" fill="#e63946"/>
+  <ellipse cx="82" cy="60" rx="34" ry="6" fill="#15171b" ${O}/>
+  <g transform="rotate(-8 128 34)"><path d="M104 18 L156 18 L156 46 L132 46 L124 56 L122 46 L104 46 Z" fill="#fffdf6" ${O}/>
+  <text x="130" y="39" text-anchor="middle" font-family="Georgia,serif" font-weight="900" font-size="17" fill="#c8323a">¡NEL!</text></g>
+`},
+valiente: {bg:'#2f6db5', g:`
+  <path d="M112 74 L150 8 L158 14 L124 82 Z" fill="#d9dee2" ${O}/>
+  <path d="M124 82 L112 74 L106 86 L118 92 Z" fill="#6b4226" ${O}/>
+  <path d="M40 110 Q82 96 124 110 L138 220 L26 220 Z" fill="#e63946" ${O}/>
+  ${[124,146,168,190,210].map((y,i)=>`<path d="M${30+i*0.6} ${y} L${134-i*0.6} ${y}" stroke="${['#ffd23f','#2b9348','#fbf7ef','#4361ee','#ffd23f'][i]}" stroke-width="6"/>`).join('')}
+  <path d="M40 110 Q82 96 124 110 L138 220 L26 220 Z" fill="none" ${O}/>
+  <path d="M120 112 L118 92" stroke="${SKIN}" stroke-width="13" stroke-linecap="round"/>
+  <path d="M120 112 L118 92" fill="none" ${o2} opacity=".5"/>
+  <circle cx="116" cy="88" r="9" fill="${SKIN}" ${O}/>
+  <circle cx="78" cy="74" r="23" fill="${SKIN}" ${O}/>
+  <path d="M62 66 L74 72 M94 66 L82 72" ${O}/>
+  <circle cx="70" cy="76" r="2.5" fill="${INK}"/><circle cx="86" cy="76" r="2.5" fill="${INK}"/>
+  <path d="M64 88 Q78 80 92 88 L90 92 Q78 86 66 92 Z" fill="${INK}"/>
+  <path d="M70 98 L86 98" ${o2}/>
+  <path d="M54 66 Q56 44 78 44 Q100 44 102 66 Q90 56 78 56 Q66 56 54 66 Z" fill="#e63946" ${O}/>
+  <path d="M100 60 L118 54 L112 66 Z" fill="#e63946" ${o2}/>
+  <circle cx="70" cy="52" r="2" fill="#fbf7ef"/><circle cx="84" cy="50" r="2" fill="#fbf7ef"/><circle cx="92" cy="56" r="2" fill="#fbf7ef"/>
+`},
+hamaca: {bg:'#f4c430', g:`
+  <circle cx="132" cy="34" r="22" fill="#ff8c1a" ${O}/>
+  ${[0,45,90,135,180,225,270,315].map(a=>`<path d="M${132+Math.cos(a*Math.PI/180)*28} ${34+Math.sin(a*Math.PI/180)*28} L${132+Math.cos(a*Math.PI/180)*36} ${34+Math.sin(a*Math.PI/180)*36}" ${O}/>`).join('')}
+  <text x="132" y="40" text-anchor="middle" font-family="Georgia,serif" font-weight="900" font-size="15" fill="${INK}">45°</text>
+  <rect x="4" y="60" width="12" height="160" fill="#8b5a2b" ${O}/><rect x="148" y="70" width="12" height="150" fill="#8b5a2b" ${O}/>
+  <path d="M16 84 L36 120 M16 84 L30 128 M154 92 L130 124 M154 92 L136 132" ${o2}/>
+  <path d="M30 120 Q82 200 136 124 Q82 168 30 120 Z" fill="#e63946" ${O}/>
+  <path d="M34 126 Q82 190 132 130" fill="none" stroke="#ffd23f" stroke-width="5"/>
+  <path d="M38 132 Q82 184 128 136" fill="none" stroke="#2b9348" stroke-width="5"/>
+  <path d="M44 140 Q82 178 122 142" fill="none" stroke="#4361ee" stroke-width="5"/>
+  <path d="M30 120 Q82 200 136 124" fill="none" ${O}/>
+  <ellipse cx="124" cy="124" rx="7" ry="10" fill="${SKIN}" ${o2} transform="rotate(-30 124 124)"/>
+  <ellipse cx="134" cy="128" rx="7" ry="10" fill="${SKIN}" ${o2} transform="rotate(-20 134 128)"/>
+  <ellipse cx="46" cy="124" rx="22" ry="6" fill="#e9c46a" ${O} transform="rotate(20 46 124)"/>
+  <path d="M38 122 Q44 104 58 116" fill="#e9c46a" ${O}/>
+  <text x="62" y="96" font-family="Georgia,serif" font-weight="900" font-size="18" fill="${INK}">z</text>
+  <text x="72" y="82" font-family="Georgia,serif" font-weight="900" font-size="22" fill="${INK}">Z</text>
+  <text x="86" y="64" font-family="Georgia,serif" font-weight="900" font-size="28" fill="${INK}">Z</text>
+  <path d="M20 214 Q82 204 144 214" fill="none" ${o2} opacity=".5"/>
+`},
+compadre: {bg:'#e07a3a', g:`
+  <path d="M40 112 Q82 98 124 112 L136 220 L28 220 Z" fill="#fbf7ef" ${O}/>
+  <path d="M58 116 L58 220 M106 116 L106 220" ${o2} opacity=".55"/>
+  <path d="M54 116 L54 220 M110 116 L110 220" ${o2} opacity=".35"/>
+  <rect x="40" y="150" width="14" height="14" fill="none" ${o2}/><rect x="110" y="150" width="14" height="14" fill="none" ${o2}/>
+  <path d="M120 118 L146 128 L152 140" fill="none" stroke="#fbf7ef" stroke-width="13" stroke-linecap="round"/>
+  <path d="M120 118 L146 128 L152 140" fill="none" ${o2} opacity=".5"/>
+  <path d="M138 150 Q150 132 162 140 Q160 152 150 154 Z" fill="${SKIN}" ${O}/>
+  <path d="M44 120 L36 160" stroke="#fbf7ef" stroke-width="13" stroke-linecap="round"/>
+  <circle cx="82" cy="76" r="24" fill="${SKIN}" ${O}/>
+  <path d="M66 74 Q72 68 78 74 M86 74 Q92 68 98 74" fill="none" ${O}/>
+  <path d="M66 88 Q82 104 98 88 Q82 94 66 88 Z" fill="#fbf7ef" ${O}/>
+  <path d="M68 86 Q82 80 96 86" fill="none" stroke="${INK}" stroke-width="4"/>
+  
+  <ellipse cx="82" cy="54" rx="40" ry="8" fill="#6b4226" ${O} transform="rotate(-6 82 54)"/>
+  <path d="M62 54 Q64 30 84 30 Q102 32 100 52 Z" fill="#6b4226" ${O}/>
+  <g transform="translate(76 4) rotate(6 40 30)"><path d="M2 14 L84 14 L84 44 L30 44 L18 56 L20 44 L2 44 Z" fill="#fffdf6" ${O}/>
+  <text x="43" y="34" text-anchor="middle" font-family="Georgia,serif" font-weight="900" font-size="11" fill="${INK}">¿ME PRESTAS?</text></g>
+`},
+mundo: {bg:'#8fd0e0', g:`
+  <circle cx="82" cy="76" r="58" fill="#2e86de" ${O}/>
+  <path d="M42 50 Q56 34 74 42 Q80 56 66 62 Q60 76 46 72 Q36 62 42 50 Z" fill="#43aa52" ${o2}/>
+  <path d="M86 32 Q106 28 116 44 Q110 54 98 52 Q90 46 86 32 Z" fill="#43aa52" ${o2}/>
+  <path d="M88 70 Q110 64 124 80 Q120 104 102 110 Q94 96 90 86 Q84 78 88 70 Z" fill="#43aa52" ${o2}/>
+  <path d="M52 92 Q64 90 68 104 Q60 114 50 106 Z" fill="#43aa52" ${o2}/>
+  <path d="M24 76 Q82 96 140 76" fill="none" ${o2} opacity=".4"/><path d="M82 18 Q62 76 82 134" fill="none" ${o2} opacity=".4"/>
+  <path d="M10 40 Q4 76 22 104" fill="none" ${O}/><path d="M22 104 L14 100 M22 104 L24 96" ${O}/>
+  <path d="M154 112 Q160 76 142 48" fill="none" ${O}/><path d="M142 48 L150 52 M142 48 L140 56" ${O}/>
+  <path d="M40 126 L50 138 M124 126 L114 138" stroke="${SKIN}" stroke-width="12" stroke-linecap="round"/>
+  <path d="M54 142 Q82 132 110 142 L116 196 L48 196 Z" fill="#fbf7ef" ${O}/>
+  <circle cx="82" cy="146" r="16" fill="${SKIN}" ${O}/>
+  <path d="M74 144 L80 146 M84 146 L90 144" ${o2}/><path d="M76 154 Q82 150 88 154" fill="none" ${o2}/>
+  <path d="M68 148 L64 142 M96 148 L100 142" stroke="#5bc0eb" stroke-width="2"/>
+  <path d="M52 196 L46 218 M112 196 L118 218" stroke="#3d405b" stroke-width="12" stroke-linecap="round"/>
+`},
+luna: {bg:'#1d2a5b', g:`
+  ${[[20,24],[140,20],[150,90],[124,150],[18,200],[148,180],[100,196]].map(([x,y],i)=>`<path d="M${x} ${y-7} L${x+2} ${y-2} L${x+7} ${y} L${x+2} ${y+2} L${x} ${y+7} L${x-2} ${y+2} L${x-7} ${y} L${x-2} ${y-2} Z" fill="#ffe066" ${i%2?'':o2}/>`).join('')}
+  <mask id="lm"><rect width="164" height="220" fill="#fff"/><circle cx="112" cy="94" r="62" fill="#000"/></mask>
+  <clipPath id="lc"><circle cx="76" cy="108" r="68"/></clipPath>
+  <g mask="url(#lm)"><circle cx="76" cy="108" r="68" fill="#ffe066" ${O}/></g>
+  <circle cx="112" cy="94" r="62" fill="none" ${O} clip-path="url(#lc)"/>
+  <path d="M26 84 Q34 80 42 86" fill="none" ${o2}/>
+  <circle cx="34" cy="94" r="4" fill="${INK}"/>
+  <path d="M20 104 Q16 110 22 114" fill="none" ${o2}/>
+  <path d="M24 128 Q32 136 44 130" fill="none" ${O}/>
+  <circle cx="44" cy="114" r="6" fill="#ff8fa3" opacity=".6"/>
+  <path d="M60 214 Q88 196 118 206 Q132 194 150 204 L164 220 L56 220 Z" fill="#c9d3e8" ${O} opacity=".9"/>
+`},
+chancla: {bg:'#ec6fa6', g:`
+  ${[0,1,2,3].map(i=>`<path d="M${10+i*4} ${150-i*18} L${50+i*4} ${140-i*18}" stroke="#fbf7ef" stroke-width="4" stroke-linecap="round"/>`).join('')}
+  <g transform="rotate(-28 92 100)">
+  <path d="M60 40 Q90 20 116 44 Q128 100 118 160 Q96 186 72 166 Q54 110 60 40 Z" fill="#2b9348" ${O}/>
+  <path d="M66 48 Q90 34 110 50 Q118 100 112 154 Q96 172 78 160 Q64 110 66 48 Z" fill="#55a630" ${o2}/>
+  <path d="M74 110 Q92 66 110 110" fill="none" stroke="#ffd23f" stroke-width="8"/>
+  <path d="M74 110 Q92 66 110 110" fill="none" ${o2}/>
+  <circle cx="92" cy="74" r="5" fill="#ffd23f" ${o2}/>
+  </g>
+  <path d="M110 160 L124 172 L120 154 L138 160 L128 146 L148 142 L128 136" fill="#fff3b0" ${O}/>
+  <text x="72" y="208" font-family="Georgia,serif" font-weight="900" font-size="30" fill="#fffdf6" stroke="${INK}" stroke-width="1.5" transform="rotate(-8 104 210)">¡ZAS!</text>
+`},
+tlacuache: {bg:'#3d4f3a', g:`
+  <circle cx="134" cy="30" r="14" fill="#ffe066" ${o2}/>
+  <path d="M0 196 L164 196 L164 220 L0 220 Z" fill="#6b4f2b" ${O}/>
+  <path d="M30 150 Q8 140 10 110 Q12 92 26 96 Q20 112 26 126 Q34 140 44 144" fill="none" stroke="#f0a6b4" stroke-width="6" stroke-linecap="round"/>
+  <path d="M30 150 Q8 140 10 110 Q12 92 26 96" fill="none" ${o2}/>
+  <path d="M36 150 Q40 116 84 116 Q122 116 128 140 Q132 170 100 178 Q54 184 36 150 Z" fill="#b9b2a5" ${O}/>
+  <path d="M48 140 Q60 130 74 136 M60 150 Q74 140 88 146" fill="none" ${o2} opacity=".5"/>
+  <path d="M120 128 Q138 112 156 132 Q150 142 132 146 Z" fill="#f2efe8" ${O}/>
+  <circle cx="157" cy="133" r="4" fill="#f0a6b4" ${o2}/>
+  <circle cx="134" cy="128" r="3" fill="${INK}"/>
+  <path d="M122 122 Q120 110 128 112 Q132 118 128 124" fill="#f0a6b4" ${o2}/>
+  <path d="M60 176 L56 196 M76 178 L76 196 M100 176 L104 196 M114 170 L120 196" stroke="#f0a6b4" stroke-width="5" stroke-linecap="round"/>
+  <g transform="rotate(14 146 152)"><rect x="138" y="138" width="18" height="26" rx="2" fill="#fbf7ef" ${o2}/><rect x="141" y="141" width="12" height="20" fill="#c8323a"/></g>
+`},
+diablito: {bg:'#f2862b', g:`
+  ${[[10,220,30,170,50,220],[40,220,62,150,84,220],[90,220,110,160,130,220],[120,220,146,176,164,220]].map(([a,b,c,d,e,f])=>`<path d="M${a} ${b} Q${c} ${d} ${c} ${d-10} Q${c+8} ${d+20} ${e} ${f} Z" fill="#ffd23f" ${o2}/>`).join('')}
+  <path d="M130 20 L130 196" stroke="#2d2d2d" stroke-width="5"/>
+  <path d="M116 30 Q116 8 130 4 Q144 8 144 30 M130 4 L130 30" fill="none" stroke="#2d2d2d" stroke-width="5"/>
+  <path d="M112 34 L116 22 L120 34 M140 34 L144 22 L148 34" fill="#2d2d2d"/>
+  <path d="M46 110 Q82 98 118 110 L128 200 L36 200 Z" fill="#c1121f" ${O}/>
+  <path d="M118 112 L130 120" stroke="#c1121f" stroke-width="13" stroke-linecap="round"/>
+  <circle cx="130" cy="120" r="7" fill="#c1121f" ${o2}/>
+  <path d="M40 180 Q14 190 16 160 Q24 172 30 168" fill="none" stroke="#c1121f" stroke-width="5"/><path d="M12 160 L22 150 L22 166 Z" fill="#c1121f" ${o2}/>
+  <circle cx="82" cy="78" r="26" fill="#e5383b" ${O}/>
+  <path d="M60 60 Q50 38 62 26 Q62 44 70 54 Z" fill="#fbf7ef" ${O}/>
+  <path d="M104 60 Q114 38 102 26 Q102 44 94 54 Z" fill="#fbf7ef" ${O}/>
+  <path d="M66 70 L78 76 M98 70 L86 76" ${O}/>
+  <ellipse cx="72" cy="80" rx="4" ry="5" fill="#ffd23f" ${o2}/><ellipse cx="92" cy="80" rx="4" ry="5" fill="#ffd23f" ${o2}/>
+  <path d="M64 90 Q82 108 100 90 Q82 98 64 90 Z" fill="#fbf7ef" ${O}/>
+  <path d="M72 92 L74 98 M80 94 L82 100 M88 94 L90 98" ${o2}/>
+  <path d="M74 104 Q82 116 90 104" fill="#7a0c13" ${o2}/>
+`},
+gallo: {bg:'#f3dc9a', g:`
+  <path d="M100 120 Q140 60 150 100 Q160 80 156 130 Q164 120 150 160 Q130 150 104 150 Z" fill="#1b998b" ${O}/>
+  <path d="M104 118 Q132 78 140 108 Q144 126 112 140 Z" fill="#e63946" ${o2}/>
+  <path d="M110 128 Q150 110 148 150" fill="none" stroke="#ffd23f" stroke-width="5"/>
+  <ellipse cx="84" cy="138" rx="40" ry="34" fill="#c1121f" ${O}/>
+  <path d="M60 128 Q80 118 100 132 Q86 156 64 150 Z" fill="#f77f00" ${o2}/>
+  <path d="M72 140 Q84 132 96 140 M68 150 Q82 142 94 150" fill="none" ${o2}/>
+  <path d="M60 116 Q46 90 52 64 Q62 54 74 62 Q78 84 80 108" fill="#f77f00" ${O}/>
+  <circle cx="58" cy="60" r="18" fill="#f77f00" ${O}/>
+  <path d="M46 46 Q48 30 56 40 Q60 26 66 40 Q72 30 74 46 Z" fill="#e63946" ${O}/>
+  <path d="M42 62 L28 66 L42 70 Z" fill="#ffd23f" ${O}/>
+  <path d="M46 72 Q44 84 52 82 Q54 74 50 70" fill="#e63946" ${o2}/>
+  <circle cx="54" cy="58" r="3.5" fill="${INK}"/><circle cx="55" cy="57" r="1" fill="#fff"/>
+  <path d="M74 170 L70 202 M94 170 L98 202" stroke="#ffd23f" stroke-width="5"/>
+  <path d="M60 204 L70 202 L66 212 M70 202 L78 210 M88 210 L98 202 L106 210 M98 202 L96 212" fill="none" ${O}/>
+  <path d="M0 212 L164 212" ${o2} opacity=".5"/>
+`},
+nopal: {bg:'#e8b86d', g:`
+  <path d="M0 196 Q82 186 164 196 L164 220 L0 220 Z" fill="#c68b59" ${O}/>
+  <ellipse cx="82" cy="150" rx="28" ry="44" fill="#40916c" ${O}/>
+  <ellipse cx="46" cy="98" rx="22" ry="32" fill="#52b788" ${O} transform="rotate(-30 46 98)"/>
+  <ellipse cx="118" cy="92" rx="22" ry="34" fill="#52b788" ${O} transform="rotate(26 118 92)"/>
+  <ellipse cx="84" cy="70" rx="18" ry="28" fill="#40916c" ${O} transform="rotate(4 84 70)"/>
+  ${[[70,130],[90,150],[76,170],[94,124],[44,90],[52,110],[118,80],[124,104],[84,60],[80,82]].map(([x,y])=>`<path d="M${x} ${y} l-4 -3 M${x} ${y} l4 -3 M${x} ${y} l0 5" stroke="${INK}" stroke-width="1.5" stroke-linecap="round"/>`).join('')}
+  <ellipse cx="34" cy="70" rx="7" ry="9" fill="#d00060" ${o2}/>
+  <ellipse cx="80" cy="38" rx="7" ry="9" fill="#d00060" ${o2}/>
+  <ellipse cx="96" cy="42" rx="7" ry="9" fill="#d00060" ${o2}/>
+  <ellipse cx="134" cy="62" rx="7" ry="9" fill="#d00060" ${o2}/>
+  <circle cx="140" cy="28" r="16" fill="#fff3b0" opacity=".6"/>
+`},
+borracho: {bg:'#9cc36b', g:`
+  <circle cx="132" cy="30" r="9" fill="#fbf7ef" ${o2} opacity=".85"/><circle cx="146" cy="50" r="6" fill="#fbf7ef" ${o2} opacity=".85"/><circle cx="120" cy="56" r="5" fill="#fbf7ef" ${o2} opacity=".85"/>
+  <text x="118" y="88" font-family="Georgia,serif" font-weight="900" font-size="20" fill="${INK}" transform="rotate(12 118 88)">¡hic!</text>
+  <g transform="rotate(10 82 140)">
+  <path d="M48 110 Q82 98 116 110 L126 200 L40 200 Z" fill="#fbf7ef" ${O}/>
+  <path d="M54 130 Q82 150 110 128" fill="none" stroke="#8d6e63" stroke-width="3" opacity=".6"/>
+  <path d="M44 200 L34 218 M120 200 L132 216" stroke="#3d405b" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="82" cy="78" r="24" fill="${SKIN}" ${O}/>
+  <path d="M68 72 L76 80 M76 72 L68 80 M88 72 L96 80 M96 72 L88 80" ${o2}/>
+  <circle cx="82" cy="88" r="7" fill="#e5383b" ${o2}/>
+  <path d="M70 98 Q78 104 92 96" fill="none" ${o2}/>
+  <circle cx="66" cy="90" r="5" fill="#ff8fa3" opacity=".7"/><circle cx="98" cy="90" r="5" fill="#ff8fa3" opacity=".7"/>
+  <path d="M56 64 Q60 46 82 46 Q104 46 108 62 Q96 56 82 58 Q68 56 56 64 Z" fill="${INK}"/>
+  <path d="M116 116 L138 134" stroke="#fbf7ef" stroke-width="12" stroke-linecap="round"/>
+  </g>
+  <g transform="rotate(-30 140 150)"><path d="M132 122 L148 122 L150 134 Q158 142 158 154 L158 190 Q158 196 150 196 L130 196 Q122 196 122 190 L122 154 Q122 142 130 134 Z" fill="#7b3f00" ${O}/>
+  <rect x="134" y="114" width="12" height="10" fill="#ffd23f" ${o2}/><rect x="124" y="158" width="32" height="18" fill="#ffd23f" ${o2}/>
+  <text x="140" y="171" text-anchor="middle" font-family="Georgia,serif" font-weight="900" font-size="7" fill="${INK}">CAGUAMA</text></g>
+  <path d="M44 120 L26 140" stroke="#fbf7ef" stroke-width="12" stroke-linecap="round" transform="rotate(10 82 140)"/>
+`},
+venado: {bg:'#6aaa72', g:`
+  <path d="M0 200 Q82 190 164 200 L164 220 L0 220 Z" fill="#386641" ${O}/>
+  <path d="M50 120 Q60 100 104 104 Q136 108 138 130 Q138 152 118 156 L60 156 Q44 150 50 120 Z" fill="#b07d48" ${O}/>
+  <path d="M60 156 L56 206 M74 156 L76 206 M112 154 L108 206 M126 150 L132 206" stroke="#8a5a2b" stroke-width="7" stroke-linecap="round"/>
+  <path d="M60 156 L56 206 M74 156 L76 206 M112 154 L108 206 M126 150 L132 206" fill="none" ${o2} opacity=".5"/>
+  <path d="M136 124 Q148 118 146 132 Z" fill="#fbf7ef" ${o2}/>
+  <path d="M50 124 Q40 96 44 76 L62 80 Q62 104 64 112 Z" fill="#b07d48" ${O}/>
+  <path d="M30 72 Q34 54 54 56 Q70 60 66 76 Q58 86 40 88 Q24 88 30 72 Z" fill="#b07d48" ${O}/>
+  <ellipse cx="24" cy="82" rx="7" ry="5" fill="${INK}"/>
+  <circle cx="46" cy="68" r="3.5" fill="${INK}"/><circle cx="47" cy="67" r="1" fill="#fff"/>
+  <path d="M58 56 Q74 48 70 40 Q62 44 58 56 Z" fill="#b07d48" ${o2}/>
+  <path d="M46 56 Q44 30 30 18 M44 42 Q32 36 26 28 M46 52 Q60 34 54 14 M54 36 Q66 28 70 20 M38 30 Q36 22 40 12" fill="none" stroke="#e9d8a6" stroke-width="4" stroke-linecap="round"/>
+  <path d="M46 56 Q44 30 30 18 M44 42 Q32 36 26 28 M46 52 Q60 34 54 14 M54 36 Q66 28 70 20 M38 30 Q36 22 40 12" fill="none" ${o2} opacity=".6"/>
+  ${[[78,118],[94,114],[86,132],[106,126],[70,136]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3" fill="#f4e3c1"/>`).join('')}
+`},
+alacran: {bg:'#d9bf86', g:`
+  ${[[40,60],[120,40],[30,180],[140,190]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2" fill="#a68a5b"/>`).join('')}
+  <g fill="#3b2a1a" ${O}>
+  <path d="M60 130 L30 116 L16 128 M62 142 L28 140 L18 156 M64 154 L32 164 L26 180 M104 130 L134 116 L148 128 M102 142 L136 140 L146 156 M100 154 L132 164 L138 180" fill="none" stroke="#3b2a1a" stroke-width="5"/>
+  </g>
+  <path d="M60 130 L30 116 L16 128 M62 142 L28 140 L18 156 M64 154 L32 164 L26 180 M104 130 L134 116 L148 128 M102 142 L136 140 L146 156 M100 154 L132 164 L138 180" fill="none" ${o2} opacity=".4"/>
+  <path d="M66 106 L44 80 L34 58" fill="none" stroke="#5a3d22" stroke-width="7" stroke-linecap="round"/>
+  <path d="M98 106 L120 80 L130 58" fill="none" stroke="#5a3d22" stroke-width="7" stroke-linecap="round"/>
+  <path d="M20 52 Q24 30 40 36 Q46 46 40 56 Q30 46 26 58 Z" fill="#5a3d22" ${O}/>
+  <path d="M144 52 Q140 30 124 36 Q118 46 124 56 Q134 46 138 58 Z" fill="#5a3d22" ${O}/>
+  <ellipse cx="82" cy="140" rx="24" ry="36" fill="#5a3d22" ${O}/>
+  <path d="M60 128 L104 128 M58 142 L106 142 M60 156 L104 156" ${o2}/>
+  <ellipse cx="82" cy="104" rx="16" ry="12" fill="#5a3d22" ${O}/>
+  <circle cx="76" cy="100" r="2.5" fill="#ffd23f"/><circle cx="88" cy="100" r="2.5" fill="#ffd23f"/>
+  ${[0,1,2,3,4].map(i=>`<ellipse cx="${82+[0,8,20,30,32][i]}" cy="${184+[0,10,14,6,-8][i]}" rx="8" ry="7" fill="#5a3d22" ${O}/>`).join('')}
+  <path d="M114 166 Q120 150 110 146 Q118 158 108 160 Z" fill="#c1121f" ${O}/>
+`}
+};
+
+function cardSVG(t, num){
+  const a = ART[t], nm = T[t].n.toUpperCase();
+  const fs = nm.length > 11 ? 17 : 20;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300">
+<defs>
+<filter id="p" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="${num*7}"/><feColorMatrix values="0 0 0 0 .35  0 0 0 0 .24  0 0 0 0 .1  0 0 0 .7 0"/></filter>
+<filter id="s" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="${num*3}"/><feColorMatrix values="0 0 0 0 .45  0 0 0 0 .3  0 0 0 0 .1  0 0 0 .35 -.12"/></filter>
+<radialGradient id="v" cx=".5" cy=".5" r=".72"><stop offset=".62" stop-color="#3a2408" stop-opacity="0"/><stop offset="1" stop-color="#3a2408" stop-opacity=".4"/></radialGradient>
+<clipPath id="c"><rect x="18" y="18" width="164" height="220"/></clipPath>
+<clipPath id="r"><rect width="200" height="300" rx="14"/></clipPath>
+</defs>
+<g clip-path="url(#r)">
+<rect width="200" height="300" fill="#f2e4c4"/>
+<rect x="10" y="10" width="180" height="280" rx="5" fill="none" stroke="${INK}" stroke-width="3"/>
+<rect x="18" y="18" width="164" height="220" fill="${a.bg}"/>
+<g clip-path="url(#c)"><g transform="translate(18,18)">${a.g}</g></g>
+<rect x="18" y="18" width="164" height="220" fill="none" stroke="${INK}" stroke-width="3"/>
+<rect x="18" y="18" width="34" height="30" fill="#f2e4c4" stroke="${INK}" stroke-width="3"/>
+<text x="35" y="41" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-weight="900" font-size="21" fill="${INK}">${num}</text>
+<text x="100" y="272" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-weight="900" font-size="${fs}" letter-spacing="1" fill="${INK}">${nm}</text>
+<rect width="200" height="300" filter="url(#s)"/>
+<rect width="200" height="300" filter="url(#p)" opacity=".28"/>
+<rect width="200" height="300" fill="url(#v)"/>
+</g>
+<rect x="1" y="1" width="198" height="298" rx="13" fill="none" stroke="#b59a6a" stroke-width="1.5"/>
+</svg>`;
+}
+function backSVG(){
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300">
+<defs>
+<pattern id="d" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M10 0 L20 10 L10 20 L0 10 Z" fill="#a4161a"/><circle cx="10" cy="10" r="2.5" fill="#ffd23f"/></pattern>
+<filter id="p"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="5"/><feColorMatrix values="0 0 0 0 .2  0 0 0 0 .05  0 0 0 0 0  0 0 0 .5 0"/></filter>
+<clipPath id="r"><rect width="200" height="300" rx="14"/></clipPath>
+</defs>
+<g clip-path="url(#r)">
+<rect width="200" height="300" fill="#7a0c13"/>
+<rect x="10" y="10" width="180" height="280" rx="6" fill="url(#d)" stroke="#ffd23f" stroke-width="3"/>
+<rect x="30" y="70" width="140" height="160" rx="70" fill="#f2e4c4" stroke="#ffd23f" stroke-width="4"/>
+<circle cx="100" cy="135" r="30" fill="#fbf7ef" stroke="${INK}" stroke-width="3"/>
+<ellipse cx="89" cy="132" rx="8" ry="9" fill="${INK}"/><ellipse cx="111" cy="132" rx="8" ry="9" fill="${INK}"/>
+<path d="M100 141 L96 149 L104 149 Z" fill="${INK}"/>
+<path d="M86 156 Q100 168 114 156" fill="none" stroke="${INK}" stroke-width="3"/>
+<path d="M90 156 L90 162 M100 158 L100 165 M110 156 L110 162" stroke="${INK}" stroke-width="2"/>
+${[[74,110,'#d6336c'],[100,98,'#ffd23f'],[126,110,'#4361ee']].map(([x,y,c])=>[0,72,144,216,288].map(a=>`<circle cx="${x+Math.cos(a*Math.PI/180)*6}" cy="${y+Math.sin(a*Math.PI/180)*6}" r="4.5" fill="${c}" stroke="${INK}" stroke-width="1.5"/>`).join('')+`<circle cx="${x}" cy="${y}" r="3.5" fill="#ffd23f" stroke="${INK}" stroke-width="1.5"/>`).join('')}
+<text x="100" y="196" text-anchor="middle" font-family="Georgia,serif" font-weight="900" font-size="19" fill="#7a0c13">LOTERÍA</text>
+<text x="100" y="214" text-anchor="middle" font-family="Georgia,serif" font-weight="900" font-size="12" letter-spacing="2" fill="#7a0c13">MEXICANA</text>
+<rect width="200" height="300" filter="url(#p)" opacity=".35"/>
+</g></svg>`;
+}
+const svgURI = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
+const CARD_IMG = {}; let BACK_IMG = '';
+function buildCardImages(){
+  for(const t of Object.keys(T)) CARD_IMG[t] = svgURI(cardSVG(t, T[t].num));
+  BACK_IMG = svgURI(backSVG());
+}
+if(typeof module!=='undefined') module.exports = {cardSVG, backSVG, ART};
+</script>
+<script>// ===== INTERFAZ, ANFITRIÓN Y RED =====
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const AV = ['💀','🌶️','🦂','🐓','🌵','🦌','🍺','🌮'];
+const BOT_NAMES = ['Doña Mamerta','Don Chepe','El Chel','La Tía Licha','Don Teodomiro','La X’tabay','Don Ruperto','La Seño Bety','El Compadre Wilbert','Doña Chabelita'];
+const CODE_CH = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const PEER_PREFIX = 'loteriamx-yuc-';
+const store = { get(k,d){ try{ const v = localStorage.getItem('lm_'+k); return v==null?d:JSON.parse(v);}catch(e){return d;} }, set(k,v){ try{ localStorage.setItem('lm_'+k, JSON.stringify(v)); }catch(e){} } };
+
+const APP = { mode:null, host:null, guest:null, view:null, lobby:null, sel:[], lastCall:0, lastFuture:0, lastLog:0, seenDeath:false, overShown:false, recvAt:0, sound: store.get('sound', true), voice: store.get('voice', true), prevHand:[], prevPower:false };
+
+// ---------- SONIDO ----------
+let AC = null;
+function ac(){ if(!AC){ try{ AC = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(AC && AC.state==='suspended') AC.resume(); return AC; }
+function tone(f, d, type='triangle', v=.15, when=0, slide){
+  const a = ac(); if(!a || !APP.sound) return;
+  const t = a.currentTime + when, o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if(slide) o.frequency.exponentialRampToValueAtTime(slide, t+d);
+  g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t+d);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t+d+.02);
+}
+function noise(d, v=.2, when=0, hp=800){
+  const a = ac(); if(!a || !APP.sound) return;
+  const b = a.createBuffer(1, a.sampleRate*d, a.sampleRate), ch = b.getChannelData(0);
+  for(let i=0;i<ch.length;i++) ch[i] = (Math.random()*2-1)*(1-i/ch.length);
+  const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+  f.type='highpass'; f.frequency.value=hp; g.gain.value=v; s.buffer=b; s.connect(f).connect(g).connect(a.destination); s.start(a.currentTime+when);
+}
+const SFX = {
+  card(){ noise(.08,.18,0,2500); },
+  draw(){ noise(.06,.15,0,3000); tone(660,.08,'sine',.06,.04); },
+  play(){ noise(.07,.2,0,1800); tone(392,.1,'triangle',.08,.03); },
+  nope(){ noise(.15,.35,0,500); tone(220,.18,'square',.08,0,110); },
+  death(){ tone(196,.5,'sawtooth',.18,0,49); tone(147,.7,'square',.12,.15,40); noise(.6,.35,0,120); },
+  defuse(){ [523,659,784,1047].forEach((f,i)=>tone(f,.25,'sine',.12,i*.08)); },
+  loteria(){ [392,494,587,784,988].forEach((f,i)=>tone(f,.3,'triangle',.14,i*.09)); },
+  win(){ [523,523,659,784,659,784,1047].forEach((f,i)=>tone(f,.28,'square',.07,i*.13)); },
+  turn(){ tone(880,.12,'sine',.1); tone(1175,.15,'sine',.08,.1); },
+  tick(){ tone(1200,.03,'square',.03); }
+};
+function say(txt){
+  if(!APP.voice || !('speechSynthesis' in window)) return;
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(txt); u.lang = 'es-MX'; u.rate = 1.08; u.pitch = .9;
+    const vs = speechSynthesis.getVoices(); const v = vs.find(v=>/es[-_]MX/i.test(v.lang)) || vs.find(v=>/^es/i.test(v.lang)); if(v) u.voice = v;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+// ---------- UTILIDADES ----------
+function toast(msg, ms=2200){ const t=$('toast'); t.textContent=msg; t.style.opacity=1; clearTimeout(toast.h); toast.h=setTimeout(()=>t.style.opacity=0, ms); }
+function flash(txt, cls){ const f=$('flash'), w=$('flash-w'); w.innerHTML=txt; f.classList.remove('hidden'); w.style.animation='none'; void w.offsetWidth; w.style.animation=''; clearTimeout(flash.h); flash.h=setTimeout(()=>f.classList.add('hidden'),1600); }
+function show(id){ for(const s of ['menu','lobby','game']) $(s).classList.toggle('hidden', s!==id); }
+function modal(html){ $('mbox').innerHTML = html; $('modal').classList.remove('hidden'); }
+function closeModal(){ $('modal').classList.add('hidden'); $('mbox').innerHTML=''; APP.modalKind=null; }
+function myName(){ const n = ($('name').value||'').trim() || 'El Pelana'; store.set('name', n); return n.slice(0,16); }
+function cardImg(t, cls=''){ return `<img class="${cls}" src="${CARD_IMG[t]}" alt="${esc(T[t].n)}" draggable="false">`; }
+function genCode(){ let c=''; for(let i=0;i<5;i++) c+=CODE_CH[Math.floor(Math.random()*CODE_CH.length)]; return c; }
+const kindsTarget = t => !!T[t].t;
+
+// ---------- ANFITRIÓN (corre el juego) ----------
+class Host {
+  constructor(code, online){
+    this.code = code; this.online = online; this.seats = []; this.s = null; this.conns = {}; this.lastRev = -1;
+    this.nopeAt = {}; this.botAt = 0; this.countdown = 0; this.timer = setInterval(()=>this.loop(), 150);
+  }
+  lobbyState(){ return {code:this.code, online:this.online, started: !!this.s && this.s.phase!=='over', countdown: this.countdown ? Math.max(0, Math.ceil((this.countdown-Date.now())/1000)) : 0,
+    seats: this.seats.map(s=>({name:s.name, bot:s.bot, ready:s.ready, host:s.local, avatar:s.avatar}))}; }
+  freeAvatar(){ const used = this.seats.map(s=>s.avatar); const free = AV.map((_,i)=>i).filter(i=>!used.includes(i)); return free[Math.floor(Math.random()*free.length)] ?? 0; }
+  addSeat(name, opts={}){
+    if(this.seats.length>=4) return -1;
+    const seat = {name, bot:!!opts.bot, ready:!!opts.bot, local:!!opts.local, conn:opts.conn||null, avatar:this.freeAvatar(), id: Math.random().toString(36).slice(2)};
+    this.seats.push(seat); this.pushLobby(); return this.seats.length-1;
+  }
+  addBot(){ const used = this.seats.map(s=>s.name); const n = BOT_NAMES.filter(b=>!used.includes(b)); this.addSeat(n[Math.floor(Math.random()*n.length)]+' 🤖', {bot:true}); }
+  removeSeat(i){ this.seats.splice(i,1); this.countdown=0; this.pushLobby(); }
+  setReady(i, v){ if(this.seats[i]){ this.seats[i].ready = v; this.pushLobby(); } }
+  pushLobby(){
+    if(!this.online) return;
+    const all = this.seats.length>=2 && this.seats.every(s=>s.ready);
+    if(!this.s || this.s.phase==='over'){
+      if(all && !this.countdown && this.online) this.countdown = Date.now()+3000;
+      if(!all) this.countdown = 0;
+    }
+    const L = this.lobbyState();
+    this.seats.forEach((s,i)=>{ if(s.conn && s.conn.open) s.conn.send({t:'lobby', lobby:L, me:i}); else if(s.local) onLobby(L, i); });
+  }
+  start(){
+    this.countdown = 0; this.nopeAt = {}; this.botAt = 0;
+    this.s = newGame(this.seats.map(s=>({name:s.name, bot:s.bot, avatar:s.avatar})));
+    this.seats.forEach(s=>{ if(!s.bot) s.ready = false; });
+    this.lastRev = -1; this.broadcast();
+  }
+  action(i, a){
+    if(!this.s) return;
+    const r = act(this.s, i, a, Date.now());
+    if(!r.ok) this.sendErr(i, r.err); else this.broadcast();
+  }
+  sendErr(i, err){ const s = this.seats[i]; if(!s) return; if(s.local) toast(err); else if(s.conn && s.conn.open) s.conn.send({t:'err', err}); }
+  broadcast(){
+    if(!this.s) return;
+    this.lastRev = this.s.rev; this.s.now = Date.now();
+    this.seats.forEach((st,i)=>{
+      if(st.bot && !st.local) return;
+      const v = viewFor(this.s, i);
+      if(st.local) onView(v); else if(st.conn && st.conn.open) st.conn.send({t:'view', v});
+    });
+  }
+  loop(){
+    const now = Date.now();
+    if(this.countdown){ if(now>=this.countdown){ this.start(); } else this.pushLobbyThrottled(now); return; }
+    const s = this.s; if(!s || s.phase==='over') return;
+    let ch = tick(s, now);
+    const bots = s.players.map((p,i)=>i).filter(i=>s.players[i].bot && s.players[i].alive);
+    if(s.phase==='nope'){
+      const key = s.pending.uid;
+      for(const i of bots){
+        const k = key+':'+i;
+        if(this.nopeAt[k]===undefined) this.nopeAt[k] = now + 450 + Math.random()*1500;
+        else if(this.nopeAt[k]>0 && now>=this.nopeAt[k]){
+          this.nopeAt[k] = -1;
+          if(botNope(s, i)){ act(s, i, {t:'nope'}, now); ch = true; break; }
+        }
+      }
+    } else {
+      let who = -1;
+      for(const i of bots){ if(botAction(s, i)){ who = i; break; } }
+      if(who<0) this.botAt = 0;
+      else {
+        if(!this.botAt) this.botAt = now + (s.phase==='play' ? 1000 + Math.random()*700 : 900);
+        else if(now>=this.botAt){
+          this.botAt = 0;
+          const a = botAction(s, who);
+          if(a){ const r = act(s, who, a, now); if(!r.ok && s.phase==='play' && s.cur===who) act(s, who, {t:'draw'}, now); ch = true; }
+        }
+      }
+    }
+    if(ch || s.rev!==this.lastRev) this.broadcast();
+  }
+  pushLobbyThrottled(now){ if(!this._pl || now-this._pl>400){ this._pl = now; this.pushLobby(); } }
+  disconnect(i){
+    const st = this.seats[i]; if(!st) return;
+    if(this.s && this.s.phase!=='over'){
+      st.bot = true; st.conn = null; st.name = st.name.replace(/ 🤖$/,'')+' 🤖';
+      const p = this.s.players[i]; if(p){ p.bot = true; p.conn = false; p.name = st.name; this.s.deadline = 0;
+        log(this.s, `${p.name.replace(' 🤖','')} se fue sin despedirse. La máquina juega por él.`, 'info'); this.s.rev++; }
+      this.broadcast();
+    } else this.removeSeat(i);
+  }
+  restart(){
+    if(this.online){ this.s.phase='over'; this.seats.forEach(st=>{ if(!st.bot) st.ready=false; }); this.s = null; this.pushLobby(); }
+    else this.start();
+  }
+  destroy(){ clearInterval(this.timer); for(const st of this.seats){ try{ st.conn && st.conn.close(); }catch(e){} } if(this.peer) try{ this.peer.destroy(); }catch(e){} }
+}
+
+// ---------- RED (PeerJS) ----------
+function loadPeer(){
+  if(window.Peer) return Promise.resolve();
+  return new Promise((res, rej)=>{
+    const sc = document.createElement('script'); sc.src = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
+    sc.onload = ()=> window.Peer ? res() : rej(); sc.onerror = rej; document.head.appendChild(sc);
+    setTimeout(()=>rej('timeout'), 12000);
+  });
+}
+const PEER_OPTS = {debug:0, config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}};
+async function hostOnline(){
+  const name = myName();
+  toast('Abriendo la sala…', 5000);
+  try{ await loadPeer(); }catch(e){ return offlineMsg(); }
+  const tryOpen = (n=0) => {
+    const code = genCode(); const peer = new Peer(PEER_PREFIX+code, PEER_OPTS);
+    peer.on('open', ()=>{
+      const h = new Host(code, true); h.peer = peer; APP.host = h; APP.mode = 'host';
+      h.addSeat(name, {local:true});
+      show('lobby'); toast('¡Sala abierta! Comparte el código.');
+      peer.on('connection', conn => {
+        conn.on('open', ()=>{});
+        conn.on('data', m => hostMsg(h, conn, m));
+        conn.on('close', ()=>{ const i = h.seats.findIndex(s=>s.conn===conn); if(i>=0) h.disconnect(i); });
+        conn.on('error', ()=>{});
+      });
+      peer.on('disconnected', ()=>{ try{ peer.reconnect(); }catch(e){} });
+    });
+    peer.on('error', err => {
+      if(err.type==='unavailable-id' && n<3){ peer.destroy(); tryOpen(n+1); }
+      else if(!APP.host) { offlineMsg(err.type); }
+    });
+  };
+  tryOpen();
+}
+function hostMsg(h, conn, m){
+  let i = h.seats.findIndex(s=>s.conn===conn);
+  if(m.t==='hello'){
+    if(i>=0) return;
+    if(h.s && h.s.phase!=='over'){ conn.send({t:'full', why:'La partida ya empezó. Espera a la siguiente.'}); return; }
+    if(h.seats.length>=4){ conn.send({t:'full', why:'La sala está llena (4 de 4).'}); return; }
+    h.addSeat(String(m.name||'Invitado').slice(0,16), {conn});
+    return;
+  }
+  if(i<0) return;
+  if(m.t==='ready') h.setReady(i, !!m.v);
+  else if(m.t==='act') h.action(i, m.a);
+  else if(m.t==='bye') h.disconnect(i);
+}
+async function joinOnline(code){
+  code = (code||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(code.length!==5) return toast('El código tiene 5 letras, pelana.');
+  const name = myName();
+  toast('Buscando la sala…', 6000);
+  try{ await loadPeer(); }catch(e){ return offlineMsg(); }
+  const peer = new Peer(PEER_OPTS);
+  peer.on('open', ()=>{
+    const conn = peer.connect(PEER_PREFIX+code, {reliable:true});
+    const to = setTimeout(()=>{ if(!APP.guest) { toast('No se pudo conectar. Revisa el código o el internet.'); try{peer.destroy();}catch(e){} } }, 12000);
+    conn.on('open', ()=>{ clearTimeout(to); toast('¡Entraste a la sala!'); APP.guest = {peer, conn, code}; APP.mode = 'guest'; conn.send({t:'hello', name}); show('lobby'); });
+    conn.on('data', m => {
+      if(m.t==='lobby') onLobby(m.lobby, m.me);
+      else if(m.t==='view') onView(m.v);
+      else if(m.t==='err') toast(m.err);
+      else if(m.t==='full'){ toast(m.why, 3500); leave(true); }
+    });
+    conn.on('close', ()=>{ if(APP.mode==='guest'){ toast('Se cayó la sala. El anfitrión se fue.', 3500); leave(true); } });
+  });
+  peer.on('error', err => {
+    if(err.type==='peer-unavailable') toast('No existe esa sala. Revisa el código.', 3000);
+    else offlineMsg(err.type);
+    try{ peer.destroy(); }catch(e){}
+  });
+}
+function offlineMsg(){
+  modal(`<h2>Sin conexión</h2><p>No se pudo abrir el modo en línea aquí. Revisa tu internet o abre el juego en <b>drophlex.github.io/NARCO-WARS/loteria/</b>.</p><p>Mientras, puedes jugar contra la máquina.</p><button class="btn" onclick="closeModal()">Va</button>`);
+}
+function send(a){
+  if(APP.mode==='guest'){ if(APP.guest && APP.guest.conn.open) APP.guest.conn.send({t:'act', a}); }
+  else if(APP.host) APP.host.action(APP.myIdx ?? 0, a);
+}
+function leave(silent){
+  if(APP.host){ APP.host.destroy(); APP.host = null; }
+  if(APP.guest){ try{ APP.guest.conn.send({t:'bye'}); }catch(e){} try{ APP.guest.peer.destroy(); }catch(e){} APP.guest = null; }
+  APP.mode = null; APP.view = null; APP.lobby = null; closeModal(); show('menu');
+  if(location.hash) history.replaceState(null, '', location.pathname);
+}
+
+// ---------- SALA ----------
+function onLobby(L, me){
+  APP.lobby = L; APP.myIdx = me;
+  if(APP.view && APP.view.phase!=='over') return;
+  if(APP.view){ APP.view = null; closeModal(); }
+  show('lobby');
+  $('l-code').textContent = L.code;
+  const seats = L.seats.map((s,i)=>`<div class="seat"><div class="av">${AV[s.avatar]}</div><div class="nm">${esc(s.name)}${i===me?' <small>(tú)</small>':''}${s.host?' 👑':''}</div>
+    <div class="st ${s.ready?'ok':''}">${s.ready?'LISTO':'esperando'}</div>${APP.mode==='host' && !s.host ? `<button class="x" onclick="APP.host.removeSeat(${i})" title="Sacar">✕</button>`:''}</div>`);
+  for(let k=L.seats.length;k<4;k++) seats.push(`<div class="seat empty"><div class="av">🪑</div><div class="nm">Silla vacía</div></div>`);
+  $('seats').innerHTML = seats.join('');
+  const mine = L.seats[me];
+  $('b-ready').textContent = mine && mine.ready ? '🙅 Ya no estoy listo' : '✋ ¡Estoy listo!';
+  $('b-ready').className = 'btn ' + (mine && mine.ready ? 'ghost' : 'green');
+  $('b-addbot').classList.toggle('hidden', APP.mode!=='host' || L.seats.length>=4);
+  $('l-count').textContent = L.countdown ? `Empieza en ${L.countdown}…` : (L.seats.length<2 ? 'Faltan jugadores…' : '');
+  if(L.countdown && L.countdown!==APP._lc){ APP._lc = L.countdown; SFX.tick(); }
+}
+function shareInvite(){
+  const code = APP.lobby?.code; if(!code) return;
+  const url = location.origin + location.pathname + '#' + code;
+  const txt = `¡Vente a jugar Lotería Mexicana conmigo! Código de sala: ${code}\n${url}`;
+  if(navigator.share) navigator.share({title:'Lotería Mexicana', text:txt, url}).catch(()=>{});
+  else copyText(txt);
+}
+function copyText(t){ (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(()=>toast('¡Copiado!')).catch(()=>toast('Código: '+(APP.lobby?.code||''))); }
+
+// ---------- SOLO ----------
+function startSolo(nBots){
+  const name = myName();
+  const h = new Host('SOLO', false); APP.host = h; APP.mode = 'solo'; APP.myIdx = 0;
+  h.addSeat(name, {local:true});
+  for(let i=0;i<nBots;i++) h.addBot();
+  h.seats.forEach(s=>s.ready=true);
+  resetGameUI(); h.start();
+}
+function resetGameUI(){ APP.view=null; APP.sel=[]; APP.lastCall=0; APP.lastFuture=0; APP.lastLog=0; APP.seenDeath=false; APP.overShown=false; APP.prevHand=[]; APP.prevPower=false; APP.lastPend=0; APP.lastTurnKey=''; closeModal(); }
+
+// ---------- RENDER DEL JUEGO ----------
+function onView(v){
+  const first = !APP.view || (APP.view.rev > v.rev) || (APP.view.phase==='over' && v.phase!=='over');
+  if(first) resetGameUI();
+  const prev = APP.view; APP.view = v; APP.recvAt = Date.now(); APP.myIdx = v.me;
+  show('game');
+  events(prev, v);
+  render();
+}
+function events(prev, v){
+  const me = v.me, p = v.players[me];
+  // nuevas líneas del registro
+  const fresh = v.log.filter(l=>l.id>APP.lastLog);
+  if(prev){
+    for(const l of fresh){
+      if(l.kind==='death'){ SFX.death(); document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); if(navigator.vibrate) navigator.vibrate([200,80,300]); if(l.who!==me) flash('💀<br>¡SE LO CARGÓ<br>LA FLACA!'); }
+      else if(l.kind==='defuse'){ SFX.defuse(); flash(l.who===me ? '¡TE SALVÓ<br>EL HMEN!' : '☠️ + 🌿'); }
+      else if(l.kind==='nope') SFX.nope();
+      else if(l.kind==='loteria'){ SFX.loteria(); flash('¡LOTERÍA!'); if(l.who===me) say('¡Lotería! Llenaste tu cartilla.'); }
+      else if(l.kind==='win') SFX.win();
+      else if(l.kind==='draw' && l.who!==me) SFX.draw();
+    }
+  }
+  if(v.log.length) APP.lastLog = v.log[v.log.length-1].id;
+  // gritón
+  if(v.lastCall && v.lastCall.id!==APP.lastCall){
+    APP.lastCall = v.lastCall.id;
+    if(prev){ SFX.play(); if(v.lastCall.t!=='muerte') say(`${T[v.lastCall.t].n}. ${v.lastCall.v}`); else say(v.lastCall.v); }
+    const g = $('g-griton'); g.classList.remove('pop'); void g.offsetWidth; g.classList.add('pop');
+  }
+  // turno
+  const tk = v.cur+':'+v.turns+':'+v.phase;
+  if(v.phase==='play' && v.cur===me && p.alive && APP.lastTurnKey!==tk && prev && (prev.cur!==me || prev.phase!=='play')) SFX.turn();
+  APP.lastTurnKey = tk;
+  // robé carta
+  if(prev && v.hand.length>prev.hand.length) SFX.draw();
+  // futuro / espionaje
+  if(v.future && v.future.id!==APP.lastFuture){
+    const isNew = APP.lastFuture!==0 || prev; APP.lastFuture = v.future.id;
+    if(isNew) showFuture(v.future, v);
+  }
+  // muerte propia
+  if(!p.alive && !APP.seenDeath){
+    APP.seenDeath = true;
+    const l = [...v.log].reverse().find(l=>l.kind==='death' && l.who===me);
+    if(v.phase!=='over') modal(`<div class="dead-ov"><div class="big">💀</div><h2>¡TE CARGÓ LA HUESUDA!</h2><p>${esc(l ? l.txt.replace(/^💀 /,'') : 'Ya fuiste.')}</p><p class="small">Te quedas de mirón. Nomás no hagas ruido, que es velorio.</p><button class="btn" onclick="closeModal()">Ni modo, a mirar</button></div>`);
+    APP.modalKind = 'dead';
+  }
+  // fin
+  if(v.phase==='over' && !APP.overShown){ APP.overShown = true; setTimeout(()=>showOver(v), 1200); }
+  // modales que dependen de la fase
+  phaseModals(v);
+}
+function phaseModals(v){
+  const me = v.me, mk = APP.modalKind || '';
+  const need = (v.phase==='favor' && v.favor.from===me) ? 'favor'
+    : (v.phase==='defuse' && v.defuse.pi===me) ? 'defuse'
+    : (v.phase==='power' && v.power.by===me && v.power.hand) ? 'take' : null;
+  if(need){
+    if(!mk.startsWith(need)) ({favor:favorModal, defuse:defuseModal, take:takeModal})[need](v);
+  } else {
+    if(['favor','defuse','take'].includes(mk)) closeModal();
+    if(mk.endsWith('-sent')) APP.modalKind = null;
+  }
+  if(['target','named','powerTarget'].includes(mk) && !(v.phase==='play' && v.cur===me)) closeModal();
+}
+function render(){
+  const v = APP.view; if(!v) return;
+  const me = v.me, p = v.players[me];
+  const curP = v.players[v.cur];
+  // turno
+  let tt;
+  if(v.phase==='over') tt = v.winner===me ? '🏆 <b>¡Sobreviviste!</b>' : `🏆 Ganó <b>${esc(v.players[v.winner].name)}</b>`;
+  else if(v.cur===me && p.alive) tt = `<b>¡Te toca!</b>${v.turns>1?` (${v.turns} turnos)`:''}<br><small>Juega cartas o roba para terminar</small>`;
+  else tt = `Turno de <b>${esc(curP.name)}</b>${v.turns>1?` (${v.turns} turnos)`:''}`;
+  $('g-turn').innerHTML = tt;
+  $('g-voice').style.opacity = APP.voice ? 1 : .4;
+  $('g-sound').textContent = APP.sound ? '🔊' : '🔇';
+  // rivales
+  $('g-opps').innerHTML = v.players.map((o,i)=> i===me ? '' : `<div class="opp ${i===v.cur&&v.phase!=='over'?'cur':''} ${o.alive?'':'dead'}">
+    ${o.power?'<span class="pw">⚡</span>':''}${o.conn===false?'<span class="dc">📵</span>':''}
+    <div class="av">${o.alive?AV[o.avatar]:'⚰️'}</div><div class="info"><div class="nm">${esc(o.name)}</div>
+    <div class="meta"><span>🃏 ${o.count}</span><span title="Cartilla">🫘 ${o.marks}/9</span></div></div></div>`).join('');
+  // baraja y descarte
+  $('g-deck').src = BACK_IMG;
+  $('g-deckn').textContent = v.deck;
+  $('g-disc').src = v.discardTop ? CARD_IMG[v.discardTop] : BACK_IMG;
+  $('g-disc').style.opacity = v.discardTop ? 1 : .25;
+  const canDraw = v.phase==='play' && v.cur===me && p.alive;
+  $('g-deckp').classList.toggle('can', canDraw);
+  const risk = v.deck ? Math.round(v.muertes / v.deck * 100) : 0;
+  $('g-danger').innerHTML = `☠️ ${v.muertes} Muerte${v.muertes===1?'':'s'} · riesgo ${risk}% <span class="bar"><i style="width:${Math.min(100,risk*2)}%"></i></span>`;
+  // lo que sé de arriba
+  const kn = v.known.filter(k=>k.pos<6);
+  $('g-known').classList.toggle('hidden', !kn.length || !p.alive);
+  $('g-known').innerHTML = kn.length ? 'Sabes: ' + kn.map(k=>`<span>${k.pos+1}ª</span>${cardImg(k.t)}`).join(' ') : '';
+  // gritón
+  if(v.lastCall){
+    $('g-gimg').src = CARD_IMG[v.lastCall.t];
+    $('g-gtxt').innerHTML = `<b>¡${esc(T[v.lastCall.t].n)}!</b>${esc(v.lastCall.v)}`;
+  } else { $('g-gimg').src = BACK_IMG; $('g-gtxt').innerHTML = `<b>¡Corre y se va!</b>El gritón está listo. Que Dios los agarre confesados.`; }
+  // registro
+  const lg = $('g-log');
+  const lines = lg.classList.contains('open') ? v.log.slice().reverse() : v.log.slice(-2).reverse();
+  lg.innerHTML = lines.map(l=>`<div class="${l.kind}">${esc(l.txt)}</div>`).join('');
+  // cartilla
+  const tb = $('g-tabla');
+  tb.innerHTML = `<div class="lbl">${p.power?'⚡ ¡LOTERÍA! ⚡':'MI CARTILLA'}</div>` + p.tabla.map((t,i)=>`<div class="c">${cardImg(t)}${p.mk[i]?'<span class="bean"></span>':''}</div>`).join('');
+  tb.classList.toggle('full', p.power);
+  // mano
+  const handIds = v.hand.map(c=>c.id);
+  APP.sel = APP.sel.filter(id=>handIds.includes(id));
+  const newIds = handIds.filter(id=>!APP.prevHand.includes(id));
+  APP.prevHand = handIds;
+  const sorted = v.hand.slice().sort((a,b)=>T[a.t].num-T[b.t].num);
+  $('g-hand').innerHTML = sorted.length ? sorted.map(c=>`<div class="card ${APP.sel.includes(c.id)?'on':''} ${newIds.includes(c.id)&&APP._rendered?'new':''}" data-id="${c.id}">${cardImg(c.t)}</div>`).join('')
+    : `<div class="empty">${p.alive?'Sin cartas. Ni para el camión.':'Estás muerto. Descansa en paz.'}</div>`;
+  APP._rendered = true;
+  // acciones
+  const myTurn = v.phase==='play' && v.cur===me && p.alive;
+  const info = selInfo();
+  $('g-play').disabled = !(myTurn && info && !info.err);
+  $('g-play').textContent = info && !info.err ? info.label : 'Jugar';
+  $('g-draw').disabled = !myTurn;
+  $('g-power').classList.toggle('hidden', !(p.power && p.alive));
+  $('g-power').disabled = !myTurn;
+  let selTxt;
+  if(APP.sel.length){
+    const c = v.hand.find(c=>c.id===APP.sel[0]);
+    selTxt = `<b>${esc(T[c.t].n)}${APP.sel.length>1?` ×${APP.sel.length}`:''}:</b> ${esc(info.err || T[c.t].d)}`;
+  } else if(!p.alive) selTxt = 'Estás muerto. Mira cómo sufren los demás.';
+  else if(v.phase==='over') selTxt = 'Se acabó la partida.';
+  else if(myTurn) selTxt = p.power ? '<b>¡Tu cartilla está llena!</b> Usa tu poder: ve las cartas de un rival y quítale 3. Si tiene 3 o menos, se muere.' : 'Toca una carta para ver qué hace. Para terminar tu turno, <b>roba</b> de la baraja… si te atreves.';
+  else selTxt = 'Toca tus cartas para leerlas. Ten listo un <b>Catrín</b> para decir ¡NEL!';
+  if(myTurn && v.turnMs && v.turnMs < 30000) selTxt += ` <b>⏱ ${Math.ceil((v.turnMs-(Date.now()-APP.recvAt))/1000)}s</b>`;
+  $('g-sel').innerHTML = selTxt;
+  renderNope();
+}
+function selInfo(){
+  const v = APP.view; if(!v || !APP.sel.length) return null;
+  const cs = APP.sel.map(id=>v.hand.find(c=>c.id===id)).filter(Boolean);
+  if(!cs.length) return null;
+  const t = cs[0].t, k = T[t].k;
+  if(cs.some(c=>c.t!==t)) return {err:'Para combinar, tienen que ser iguales.'};
+  if(cs.length===1){
+    if(k==='combo') return {err:'Sola no hace nada. Selecciona 2 o 3 iguales.'};
+    if(k==='hmen') return {err:'El Hmen se usa solito cuando te sale La Muerte.'};
+    if(k==='nope') return {err:'El Catrín se usa cuando alguien juega algo (aparece el botón ¡NEL!).'};
+    return {t, n:1, label:`Jugar ${T[t].n}`};
+  }
+  if(cs.length>3) return {err:'Máximo 3 iguales.'};
+  if(k!=='combo') return {err:'Solo las figuras se combinan.'};
+  return {t, n:cs.length, label: cs.length===2 ? `Par: robar carta` : `Tercia: pedir carta`};
+}
+function renderNope(){
+  const v = APP.view, box = $('g-nope');
+  if(!v || v.phase!=='nope' || !v.pending){ box.classList.add('hidden'); return; }
+  const pd = v.pending, me = v.me, p = v.players[me];
+  box.classList.remove('hidden');
+  const who = v.players[pd.by].name;
+  const what = pd.n===1 ? T[pd.t].n : `${pd.n} × ${T[pd.t].n}`;
+  const tg = pd.target!=null ? ` contra ${pd.target===me?'<b>TI</b>':esc(v.players[pd.target].name)}` : '';
+  const state = pd.nopes%2 ? `<br>🎩 ${esc(v.players[pd.last].name)} dijo ¡NEL! — <b>cancelada</b>` : (pd.nopes ? `<br>🎩 …y alguien des-canceló. <b>¡Sí va!</b>` : '');
+  $('g-nope-msg').innerHTML = `${pd.by===me?'Tú jugaste':esc(who)+' jugó'} <b>${esc(what)}</b>${tg}${state}`;
+  const hasCat = v.hand.some(c=>c.t==='catrin');
+  const can = p.alive && hasCat && pd.last!==me && !(pd.by===me && pd.nopes%2===0);
+  $('g-nope-b').classList.toggle('hidden', !can);
+  $('g-nope-b').textContent = pd.nopes%2 ? '🎩 ¡NEL al NEL! (des-cancelar)' : '🎩 ¡NEL, PELANA! (cancelar)';
+}
+// barra de tiempo del NEL
+setInterval(()=>{
+  const v = APP.view; if(!v || v.phase!=='nope' || !v.pending) return;
+  const left = v.pending.ms - (Date.now()-APP.recvAt);
+  $('g-nope-t').style.width = Math.max(0, Math.min(100, left/NOPE_MS*100))+'%';
+}, 60);
+setInterval(()=>{ const v = APP.view; if(v && v.phase==='play' && v.cur===v.me && v.turnMs && v.turnMs<32000) render(); }, 1000);
+
+// ---------- MODALES ----------
+function targetModal(title, cb, kind='target'){
+  const v = APP.view, me = v.me;
+  const opts = v.players.map((o,i)=>({o,i})).filter(x=>x.i!==me && x.o.alive);
+  if(opts.length===1) return cb(opts[0].i);
+  modal(`<h2>${title}</h2><div class="targets">${opts.map(x=>`<button class="btn" data-t="${x.i}">${AV[x.o.avatar]} ${esc(x.o.name)} · 🃏 ${x.o.count}</button>`).join('')}</div><button class="btn ghost" onclick="closeModal()">Mejor no</button>`);
+  APP.modalKind = kind;
+  $('mbox').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{ closeModal(); cb(+b.dataset.t); });
+}
+function namedModal(cb){
+  const types = Object.keys(T).filter(t=>t!=='muerte');
+  modal(`<h2>¿Qué carta le pides?</h2><p>Si la tiene, te la tiene que dar.</p><div class="cards">${types.map(t=>`<div class="card" data-k="${t}">${cardImg(t)}</div>`).join('')}</div><button class="btn ghost" onclick="closeModal()">Mejor no</button>`);
+  APP.modalKind = 'named';
+  $('mbox').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{ closeModal(); cb(b.dataset.k); });
+}
+function favorModal(v){
+  const to = v.players[v.favor.to].name;
+  const sorted = v.hand.slice().sort((a,b)=>T[a.t].num-T[b.t].num);
+  modal(`<h2>¡Te cayó el compadre!</h2><p><b>${esc(to)}</b> te pide una carta. Escoge cuál le das (la que menos te duela).</p>
+    <div class="cards">${sorted.map(c=>`<div class="card" data-id="${c.id}">${cardImg(c.t)}</div>`).join('')}</div><p class="small">Si no escoges en ${Math.round(v.favor.ms/1000)} segundos, se le da una al azar.</p>`);
+  APP.modalKind = 'favor';
+  $('mbox').querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>{ send({t:'give', id:+b.dataset.id}); closeModal(); APP.modalKind='favor-sent'; });
+}
+function defuseModal(v){
+  const n = v.deck;
+  modal(`<div class="big">🌿</div><h2>¡El Hmen te salvó!</h2><p>Te hizo una limpia con ruda y huevo. Ahora esconde a <b>La Muerte</b> donde quieras de la baraja. Nadie más va a ver dónde.</p>
+    <div style="display:flex;gap:10px;align-items:center;margin:12px 0">${cardImg('muerte').replace('<img','<img style="width:70px;border-radius:6px"')}
+    <div style="flex:1"><input type="range" id="dpos" min="0" max="${n}" value="0"><div id="dlbl" style="text-align:center;font-weight:900;margin-top:6px"></div></div></div>
+    <div class="row"><button class="btn" data-p="0">Hasta arriba</button><button class="btn" data-p="1">2ª</button></div>
+    <div class="row"><button class="btn" data-p="${n}">Hasta abajo</button><button class="btn" data-p="r">Al azar</button></div>
+    <button class="btn red" id="dgo">Esconderla ahí</button>`);
+  APP.modalKind = 'defuse';
+  const r = $('dpos'), lbl = $('dlbl');
+  const upd = () => { const x = +r.value; lbl.textContent = x===0 ? 'Hasta arriba (le toca al siguiente 😈)' : x>=n ? 'Hasta abajo' : `Posición ${x+1} de ${n+1}`; };
+  r.oninput = upd; upd();
+  $('mbox').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{ r.value = b.dataset.p==='r' ? Math.floor(Math.random()*(n+1)) : Math.min(n, +b.dataset.p); upd(); });
+  $('dgo').onclick = () => { send({t:'place', pos:+r.value}); closeModal(); APP.modalKind='defuse-sent'; };
+}
+function takeModal(v){
+  const tg = v.players[v.power.target];
+  const need = Math.min(3, v.power.hand.length);
+  APP.take = [];
+  modal(`<h2>⚡ ¡LOTERÍA!</h2><p>Estas son las cartas de <b>${esc(tg.name)}</b>. Escoge <b>${need}</b> para tirárselas.</p>
+    <div class="cards" id="tk">${v.power.hand.map(c=>`<div class="card" data-id="${c.id}">${cardImg(c.t)}</div>`).join('')}</div>
+    <button class="btn red" id="tkgo" disabled>Quitárselas</button>`);
+  APP.modalKind = 'take';
+  $('tk').querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>{
+    const id = +b.dataset.id; const i = APP.take.indexOf(id);
+    if(i>=0) APP.take.splice(i,1); else if(APP.take.length<need) APP.take.push(id);
+    $('tk').querySelectorAll('[data-id]').forEach(x=>x.classList.toggle('on', APP.take.includes(+x.dataset.id)));
+    $('tkgo').disabled = APP.take.length!==need;
+  });
+  $('tkgo').onclick = () => { send({t:'take', ids:APP.take}); closeModal(); APP.modalKind='take-sent'; };
+}
+function showFuture(f, v){
+  if(['favor','defuse','take'].includes(APP.modalKind)) return;
+  if(f.kind==='future'){
+    modal(`<h2>🌙 La Luna te dice…</h2><p>Las ${f.types.length} cartas de arriba (la 1ª es la que sigue):</p>
+      <div class="cards">${f.types.map((t,i)=>`<div class="card"><span class="pos">${i+1}ª</span>${cardImg(t)}</div>`).join('') || '<p>La baraja está vacía.</p>'}</div>
+      <p>${f.types[0]==='muerte' ? '<b>¡Aguas! La flaca está hasta arriba.</b>' : f.types.includes('muerte') ? 'La flaca anda cerquita. Ponte vivo.' : 'Por ahora, todo tranquilo. Por ahora.'}</p>
+      <button class="btn" onclick="closeModal()">Ya vi</button>`);
+  } else {
+    const tg = v.players[f.who];
+    modal(`<h2>⚡ Rayos X</h2><p>Las cartas de <b>${esc(tg.name)}</b>:</p><div class="cards">${f.types.map(t=>`<div class="card">${cardImg(t)}</div>`).join('') || '<p>Nada. Ni para el camión.</p>'}</div>
+      ${f.types.length<=3 ? '<p><b>Tenía 3 o menos… ¡se lo comió tu cartilla! 💀</b></p>' : ''}<button class="btn" onclick="closeModal()">Qué chismoso soy</button>`);
+  }
+  APP.modalKind = 'info';
+}
+function showOver(v){
+  const win = v.winner===v.me;
+  const w = v.players[v.winner];
+  const canRestart = APP.mode!=='guest';
+  const order = [...v.deaths].reverse().map((i,k)=>`<div>${k+2}. ${AV[v.players[i].avatar]} ${esc(v.players[i].name)}</div>`).join('');
+  modal(`<div class="big">${win?'🏆':'⚰️'}</div><h2>${win?'¡SOBREVIVISTE!':'¡Ganó '+esc(w.name)+'!'}</h2>
+    <p>${win ? 'La flaca dice que al rato vuelve por ti. Disfruta mientras.' : 'Ni modo, pelana. Al menos no te tocó pagar el velorio.'}</p>
+    <div style="text-align:center;font-weight:700;margin:10px 0"><div>1. ${AV[w.avatar]} ${esc(w.name)} 👑</div>${order}</div>
+    ${canRestart ? `<button class="btn red" id="ov-again">🔁 Otra partida</button>` : `<p class="small">Cuando el anfitrión abra otra partida, te regresa a la sala.</p>`}
+    <button class="btn ghost" id="ov-exit">Salir al menú</button>`);
+  APP.modalKind = 'over';
+  if(canRestart) $('ov-again').onclick = () => { closeModal(); if(APP.mode==='solo'){ resetGameUI(); APP.host.start(); } else { APP.view=null; APP.host.restart(); show('lobby'); } };
+  $('ov-exit').onclick = () => leave();
+}
+function helpModal(){
+  const rows = Object.keys(T).filter(t=>T[t].k!=='combo').map(t=>`<div class="r">${cardImg(t)}<div><b>${esc(T[t].n)}</b><br>${esc(T[t].d)}</div></div>`).join('');
+  modal(`<div class="help"><h2>Cómo se juega</h2>
+  <ol>
+  <li>En la baraja hay <b>Muertes</b> escondidas (una menos que el número de jugadores). Si robas una y no tienes al <b>Hmen</b>, te mueres. El último vivo gana.</li>
+  <li>En tu turno puedes jugar todas las cartas que quieras. Para <b>terminar tu turno</b>, robas una carta de la baraja.</li>
+  <li>Cuando alguien juega una carta, todos tienen unos segundos para decir <b>¡NEL!</b> con el Catrín.</li>
+  <li>Cada quien tiene una <b>cartilla</b>. Cada carta que se canta (que alguien juega) o que tú robas te pone un frijolito si está en tu cartilla. El centro es gratis.</li>
+  <li>Si llenas la cartilla <b>no ganas</b> (bienvenido a México), pero te ganas un poder: ves las cartas de un rival y le quitas 3. Si tiene 3 o menos, ¡se muere! Luego te dan cartilla nueva.</li>
+  </ol>
+  ${rows}
+  <div class="r">${cardImg('gallo')}<div><b>Figuras: Gallo, Nopal, Borracho, Venado, Alacrán</b><br>${esc(T.gallo.d)}</div></div>
+  <button class="btn" onclick="closeModal()">¡Ya entendí, bomba!</button></div>`);
+  APP.modalKind = 'help';
+}
+
+// ---------- EVENTOS DE LA INTERFAZ ----------
+function playSelected(){
+  const v = APP.view, info = selInfo(); if(!info || info.err) return;
+  const ids = APP.sel.slice();
+  const go = (target, named) => { send({t:'play', ids, target, named}); APP.sel = []; render(); };
+  if(info.n===1){
+    if(kindsTarget(info.t)) targetModal(info.t==='chancla' ? '¿A quién le avientas la chancla?' : info.t==='compadre' ? '¿A qué compadre le pides?' : '¿A quién castigas?', t=>go(t));
+    else go();
+  } else if(info.n===2) targetModal('¿A quién le bajas una carta?', t=>go(t));
+  else targetModal('¿A quién le pides?', t=>namedModal(k=>go(t,k)));
+}
+function init(){
+  buildCardImages();
+  $('name').value = store.get('name', '');
+  const cols = ['#e5387b','#ffd23f','#2b9348','#2f6db5','#f77f00','#9b5de5','#e63946','#00bbf9','#ffd23f','#e5387b'];
+  $('picado').innerHTML = cols.map(c=>`<span style="background:${c}"></span>`).join('');
+  $('fan').innerHTML = ['muerte','catrin','hmen','luna','chancla'].map((t,i)=>`<img src="${CARD_IMG[t]}" style="transform:rotate(${(i-2)*13}deg) translateY(${Math.abs(i-2)*6}px)">`).join('');
+  const panels = ['m-main','m-solo','m-join'];
+  const panel = id => panels.forEach(p=>$(p).classList.toggle('hidden', p!==id));
+  $('b-solo').onclick = () => { ac(); panel('m-solo'); };
+  $('b-join').onclick = () => { ac(); panel('m-join'); $('code').focus(); };
+  document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>panel('m-main'));
+  let nb = 2;
+  $('seg-bots').querySelectorAll('button').forEach(b=>b.onclick=()=>{ nb=+b.dataset.n; $('seg-bots').querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b)); });
+  $('b-solo-go').onclick = () => { ac(); panel('m-main'); startSolo(nb); };
+  $('b-host').onclick = () => { ac(); hostOnline(); };
+  $('b-join-go').onclick = () => { ac(); joinOnline($('code').value); };
+  $('code').addEventListener('keydown', e=>{ if(e.key==='Enter') joinOnline($('code').value); });
+  $('b-help').onclick = helpModal; $('g-help').onclick = helpModal;
+  $('b-share').onclick = shareInvite; $('b-copy').onclick = () => copyText(APP.lobby?.code||'');
+  $('b-ready').onclick = () => {
+    const mine = APP.lobby?.seats[APP.myIdx]; const v = !(mine && mine.ready);
+    if(APP.mode==='host') APP.host.setReady(APP.myIdx, v); else if(APP.guest) APP.guest.conn.send({t:'ready', v});
+  };
+  $('b-addbot').onclick = () => APP.host && APP.host.addBot();
+  $('b-leave').onclick = () => leave();
+  $('g-menu').onclick = () => {
+    modal(`<h2>¿Te vas?</h2><p>${APP.mode==='solo'?'Se pierde la partida.':'Si te vas, la máquina juega por ti.'}</p><div class="row"><button class="btn red" id="q-y">Sí, ya me voy</button><button class="btn" onclick="closeModal()">Me quedo</button></div>`);
+    APP.modalKind = 'quit'; $('q-y').onclick = () => leave();
+  };
+  $('g-sound').onclick = () => { APP.sound = !APP.sound; store.set('sound', APP.sound); ac(); render(); };
+  $('g-voice').onclick = () => { APP.voice = !APP.voice; store.set('voice', APP.voice); if(!APP.voice && 'speechSynthesis' in window) speechSynthesis.cancel(); toast(APP.voice?'Gritón encendido 🗣️':'Gritón apagado'); render(); };
+  $('g-hand').onclick = e => {
+    const c = e.target.closest('.card'); if(!c) return;
+    const id = +c.dataset.id; const v = APP.view; const card = v.hand.find(x=>x.id===id); if(!card) return;
+    const i = APP.sel.indexOf(id);
+    if(i>=0) APP.sel.splice(i,1);
+    else {
+      const selT = APP.sel.length ? v.hand.find(x=>x.id===APP.sel[0])?.t : null;
+      if(selT && selT===card.t && T[card.t].k==='combo' && APP.sel.length<3) APP.sel.push(id);
+      else APP.sel = [id];
+    }
+    SFX.card(); render();
+  };
+  $('g-play').onclick = playSelected;
+  $('g-draw').onclick = () => { APP.sel = []; send({t:'draw'}); };
+  $('g-deck').onclick = () => { const v = APP.view; if(v && v.phase==='play' && v.cur===v.me && v.players[v.me].alive){ APP.sel=[]; send({t:'draw'}); } };
+  $('g-power').onclick = () => targetModal('⚡ ¿A quién le ves las cartas?', t=>send({t:'power', target:t}), 'powerTarget');
+  $('g-nope-b').onclick = () => send({t:'nope'});
+  $('g-log').onclick = () => { $('g-log').classList.toggle('open'); render(); };
+  $('g-tabla').onclick = () => {
+    const v = APP.view; if(!v) return; const p = v.players[v.me];
+    modal(`<h2>Mi cartilla</h2><p>Se marca cuando alguien canta (juega) una de estas cartas, o cuando tú la robas o te la dan. El centro es gratis.</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:300px;margin:auto">${p.tabla.map((t,i)=>`<div style="position:relative">${cardImg(t).replace('<img','<img style="width:100%;border-radius:6px"')}${p.mk[i]?'<span class="bean" style="position:absolute;left:50%;top:50%;width:55%;aspect-ratio:1.3;transform:translate(-50%,-50%) rotate(-20deg);border-radius:50%;background:radial-gradient(circle at 35% 35%,#a0522d,#4a2511);box-shadow:1px 1px 3px #000"></span>':''}</div>`).join('')}</div>
+      <p><b>${p.mk.filter(Boolean).length}/9</b> ${p.power?'— ¡LLENA! Usa tu poder en tu turno.':''}</p><button class="btn" onclick="closeModal()">Va</button>`);
+    APP.modalKind = 'info';
+  };
+  $('modal').onclick = e => { if(e.target.id==='modal' && ['help','info','dead','target','named','powerTarget','quit'].includes(APP.modalKind)) closeModal(); };
+  window.addEventListener('beforeunload', ()=>{ try{ APP.guest && APP.guest.conn.send({t:'bye'}); }catch(e){} });
+  // invitación por enlace: #CODIGO
+  const h = (location.hash||'').replace('#','').toUpperCase();
+  if(/^[A-Z0-9]{5}$/.test(h)){ $('code').value = h; panel('m-join'); setTimeout(()=>toast('Te invitaron a una sala. Pon tu nombre y entra.'), 300); }
+  if('speechSynthesis' in window) speechSynthesis.getVoices();
+}
+init();
+</script>
+</body>
+</html>

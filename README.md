@@ -11,6 +11,12 @@ Juego de estrategia y comercio estilo synthwave, ambientado en un México del 20
 En Android: abre el enlace en Chrome → menú ⋮ → **Agregar a pantalla de inicio**. Funciona sin internet después de la primera vez.
 En iPhone: abre en Safari → Compartir → **Agregar a inicio**.
 
+## 🎴 También aquí: Lotería Mexicana
+
+Juego de cartas de humor negro yucateco para 2 a 4 jugadores (o contra la máquina), con salas privadas por código.
+
+**👉 https://drophlex.github.io/NARCO-WARS/loteria/**
+
 ## La historia
 
 Neo Tijuana, 2097. Te corrieron de repartidor de tacos: te reemplazó un dron con salsa integrada. Don Chuy el Henequenero, prestamista de Mérida huach, te prestó $5,500 «para tu emprendimiento». Tienes 60 días.
